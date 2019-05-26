@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 24db330012c46e36cb68e9433536944533f5e0c720ad874c72502b71474f4a32
+-- hash: e159901e3eb2b4edfd8f044105092e5836bf8a358ca50c0fb135972ae66fc50e
 
 name:           hid3-and-seq
 version:        0.1.0.0
@@ -13,7 +13,7 @@ description:    Please see the README on GitHub at <https://github.com/josiah14-
 category:       Machine Learning: Decision Trees
 homepage:       https://github.com/josiah14-MachineLearning/ID3-and-Derivatives/haskell/sequential/hid3-and-seq#readme
 bug-reports:    https://github.com/josiah14-MachineLearning/ID3-and-Derivatives/haskell/sequential/hid3-and-seq/issues
-author:         Josiah Berkeible
+author:         Josiah Berkebile
 maintainer:     hw3ynh4j9jw3@opayq.com
 copyright:      2019 Cloyd Garrett (Josiah) Berkebile
 license:        AGPL-3.0
