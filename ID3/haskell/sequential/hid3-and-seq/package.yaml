@@ -1,29 +1,27 @@
 name:                hid3-and-seq
 version:             0.1.0.0
-github:              "githubuser/hid3-and-seq"
-license:             BSD3
-author:              "Author name here"
-maintainer:          "example@example.com"
-copyright:           "2019 Author name here"
+github:              "josiah14-MachineLearning/ID3-and-Derivatives/haskell/sequential/hid3-and-seq"
+license:             AGPL-3.0
+author:              "Josiah Berkeible"
+maintainer:          "hw3ynh4j9jw3@opayq.com"
+copyright:           "2019 Cloyd Garrett (Josiah) Berkebile"
 
 extra-source-files:
 - README.md
 - ChangeLog.md
 
 # Metadata used when publishing your package
-# synopsis:            Short description of your package
-# category:            Web
+synopsis:            "Naive sequential implementation of the ID3 algorithm"
+category:            "Machine Learning: Decision Trees"
 
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/githubuser/hid3-and-seq#readme>
+description:         Please see the README on GitHub at <https://github.com/josiah14-MachineLearning/ID3-and-Derivatives#readme>
 
 dependencies:
 - base >= 4.7 && < 5
 - random >= 1.1 && < 2
-- hspec >= 2.0 && < 3
-- QuickCheck >= 2.0 && < 3
 
 library:
   source-dirs:

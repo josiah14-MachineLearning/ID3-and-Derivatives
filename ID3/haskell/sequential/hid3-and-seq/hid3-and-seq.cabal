@@ -4,17 +4,19 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 129aa21d8e407eaecc9303e96f3874db22b2a7d2c3d2e664682b9a628918bccc
+-- hash: 24db330012c46e36cb68e9433536944533f5e0c720ad874c72502b71474f4a32
 
 name:           hid3-and-seq
 version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/githubuser/hid3-and-seq#readme>
-homepage:       https://github.com/githubuser/hid3-and-seq#readme
-bug-reports:    https://github.com/githubuser/hid3-and-seq/issues
-author:         Author name here
-maintainer:     example@example.com
-copyright:      2019 Author name here
-license:        BSD3
+synopsis:       Naive sequential implementation of the ID3 algorithm
+description:    Please see the README on GitHub at <https://github.com/josiah14-MachineLearning/ID3-and-Derivatives#readme>
+category:       Machine Learning: Decision Trees
+homepage:       https://github.com/josiah14-MachineLearning/ID3-and-Derivatives/haskell/sequential/hid3-and-seq#readme
+bug-reports:    https://github.com/josiah14-MachineLearning/ID3-and-Derivatives/haskell/sequential/hid3-and-seq/issues
+author:         Josiah Berkeible
+maintainer:     hw3ynh4j9jw3@opayq.com
+copyright:      2019 Cloyd Garrett (Josiah) Berkebile
+license:        AGPL-3.0
 license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
@@ -23,7 +25,7 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/githubuser/hid3-and-seq
+  location: https://github.com/josiah14-MachineLearning/ID3-and-Derivatives/haskell/sequential/hid3-and-seq
 
 library
   exposed-modules:
@@ -33,9 +35,7 @@ library
   hs-source-dirs:
       src
   build-depends:
-      QuickCheck >=2.0 && <3
-    , base >=4.7 && <5
-    , hspec >=2.0 && <3
+      base >=4.7 && <5
     , random >=1.1 && <2
   default-language: Haskell2010
 
@@ -47,11 +47,9 @@ executable hid3-and-seq-exe
       app
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      QuickCheck >=2.0 && <3
-    , base >=4.7 && <5
+      base >=4.7 && <5
     , ghcid
     , hid3-and-seq
-    , hspec >=2.0 && <3
     , random >=1.1 && <2
   default-language: Haskell2010
 
