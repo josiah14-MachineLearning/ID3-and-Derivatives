@@ -1,10 +1,7 @@
-{-# LANGUAGE ViewPatterns #-}
-
 module Lib
     ( someFunc
     , entropy
     ) where
-import Data.Maybe (fromMaybe)
 import Data.Foldable (foldl')
 
 someFunc :: IO ()
