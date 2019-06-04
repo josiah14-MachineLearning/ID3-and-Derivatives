@@ -4,7 +4,7 @@ import Test.Hspec
 import Test.QuickCheck
 import Control.Exception (evaluate)
 import Lib
-import Data.List (foldl1')
+import Data.List (foldl')
 import Data.Coerce (coerce)
 
 gt1Int :: Gen Int
@@ -23,29 +23,30 @@ main = hspec $ do
       evaluate (head []) `shouldThrow` anyException
 
   describe "Lib.entropy" $ do
-    it "returns a non-zero number" $
-      (property :: ((NonEmptyList (Positive Int) -> NonNegative Int -> Bool) -> Property)) $
+    it "returns a non-negative number" $
+      (property :: (([Positive Int] -> NonNegative Int -> Bool) -> Property)) $
         \(coerce -> xs) (coerce -> b) ->
-          let sumXs = foldl1' (+) xs
+          let sumXs = foldl' (+) 0 xs
           in case b of
             1 -> case xs of
-              [x] -> isNaN $ entropy xs x b
-              _   -> isInfinite $ entropy xs sumXs b
-            _ -> entropy xs sumXs b >= 0
+              [x] -> isNaN $ entropy x b xs
+              []  -> entropy sumXs b xs == -0.0
+              _   -> isInfinite $ entropy sumXs b xs
+            _ -> entropy sumXs b xs >= 0
 
     it "returns the weighted sum of the logs of the probabilities" $
       (property :: ((NonEmptyList (Positive Int) -> NonNegative Int -> Bool) -> Property)) $
         \(coerce -> xs) (coerce -> b) ->
-          let sumXs = foldl1' (+) xs
+          let sumXs = foldl' (+) 0 xs
               probabilities =
                 map (\x -> fromIntegral x / (fromIntegral sumXs)) xs
               weightSumOfProbLogs =
                 map (\p -> (*) p $ logBase (fromIntegral b) p) probabilities
           in case b of
             1 -> case xs of
-              [x] -> isNaN $ entropy xs x b
-              _   -> isInfinite $ entropy xs sumXs b
-            _ -> entropy xs sumXs b == -foldl1' (+) weightSumOfProbLogs
+              [x] -> isNaN $ entropy x b xs
+              _   -> isInfinite $ entropy sumXs b xs
+            _ -> entropy sumXs b xs == -foldl' (+) 0.0 weightSumOfProbLogs
 
     it "returns a higher value for higher-entropy lists" $
-      entropy [5, 5, 5, 5] 20 2 > (entropy [1, 2, 2, 10, 5] 20 2) `shouldBe` True
+      entropy 20 2 [5, 5, 5, 5] > (entropy 20 2 [1, 2, 2, 10, 5]) `shouldBe` True

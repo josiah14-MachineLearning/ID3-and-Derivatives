@@ -5,16 +5,16 @@ module Lib
     , entropy
     ) where
 import Data.Maybe (fromMaybe)
-import Data.List (foldl1')
+import Data.Foldable (foldl')
 
 someFunc :: IO ()
-someFunc = putStrLn $ show $ entropy [7, 4, 4] 15 2
+someFunc = putStrLn $ show $ entropy 15 2 [7, 4, 4]
 
-entropy :: [Int] -> Int -> Int -> Double
-entropy typeFrequencies totalElements logarithmicBase =
-  -(foldl1' (+) $ map (\p -> p * (logBase b p)) probabilities)
+entropy :: (Foldable f, Floating b) => Int -> Int -> f Int -> b
+entropy totalElements logarithmicBase itemFrequencies =
+  negate $ foldl' (\entropy f -> entropy + itemEntropy f) 0 itemFrequencies
     where
-      is = map fromIntegral typeFrequencies
+      itemEntropy ifreq = let prob = (fromIntegral ifreq) / l
+                          in prob * logBase b prob
       l  = fromIntegral totalElements
       b  = fromIntegral logarithmicBase
-      probabilities = map (flip (/) $ l) $ is
