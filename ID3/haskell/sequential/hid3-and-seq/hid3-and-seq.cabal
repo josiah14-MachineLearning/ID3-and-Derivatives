@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e159901e3eb2b4edfd8f044105092e5836bf8a358ca50c0fb135972ae66fc50e
+-- hash: b5724492f77fec4a4e8ffe76119ba27bd6fc538fb4d68e15b07c9582306c076f
 
 name:           hid3-and-seq
 version:        0.1.0.0
@@ -35,7 +35,11 @@ library
   hs-source-dirs:
       src
   build-depends:
-      base >=4.7 && <5
+      QuickCheck >=2.0 && <3
+    , base >=4.7 && <5
+    , hoogle
+    , hspec >=2.0 && <3
+    , optional-args <2
     , random >=1.1 && <2
   default-language: Haskell2010
 
@@ -47,9 +51,13 @@ executable hid3-and-seq-exe
       app
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      QuickCheck >=2.0 && <3
+    , base >=4.7 && <5
     , ghcid
     , hid3-and-seq
+    , hoogle
+    , hspec >=2.0 && <3
+    , optional-args <2
     , random >=1.1 && <2
   default-language: Haskell2010
 
@@ -65,6 +73,8 @@ test-suite hid3-and-seq-test
       QuickCheck >=2.0 && <3
     , base >=4.7 && <5
     , hid3-and-seq
+    , hoogle
     , hspec >=2.0 && <3
+    , optional-args <2
     , random >=1.1 && <2
   default-language: Haskell2010

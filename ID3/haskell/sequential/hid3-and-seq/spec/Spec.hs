@@ -22,17 +22,17 @@ main = hspec $ do
     it "throws an exception if used with an empty list" $ do
       evaluate (head []) `shouldThrow` anyException
 
-  describe "Lib.entropy" $ do
+  describe "Lib.entropy'" $ do
     it "returns a non-negative number" $
       (property :: (([Positive Int] -> NonNegative Int -> Bool) -> Property)) $
         \(coerce -> xs) (coerce -> b) ->
           let sumXs = foldl' (+) 0 xs
           in case b of
             1 -> case xs of
-              [x] -> isNaN $ entropy x b xs
-              []  -> entropy sumXs b xs == -0.0
-              _   -> isInfinite $ entropy sumXs b xs
-            _ -> entropy sumXs b xs >= 0
+              [x] -> isNaN $ entropy' x xs b
+              []  -> entropy' sumXs xs b == 0.0
+              _   -> isInfinite $ entropy' sumXs xs b
+            _ -> entropy' sumXs xs b >= 0
 
     it "returns the weighted sum of the logs of the probabilities" $
       (property :: ((NonEmptyList (Positive Int) -> NonNegative Int -> Bool) -> Property)) $
@@ -44,9 +44,24 @@ main = hspec $ do
                 map (\p -> (*) p $ logBase (fromIntegral b) p) probabilities
           in case b of
             1 -> case xs of
-              [x] -> isNaN $ entropy x b xs
-              _   -> isInfinite $ entropy sumXs b xs
-            _ -> entropy sumXs b xs == -foldl' (+) 0.0 weightSumOfProbLogs
+              [x] -> isNaN $ entropy' x xs b
+              []  -> entropy' sumXs xs b == 0.0
+              _   -> isInfinite $ entropy' sumXs xs b
+            _ -> entropy' sumXs xs b == -foldl' (+) 0.0 weightSumOfProbLogs
 
-    it "returns a higher value for higher-entropy lists" $
-      entropy 20 2 [5, 5, 5, 5] > (entropy 20 2 [1, 2, 2, 10, 5]) `shouldBe` True
+    it "returns a higher value for higher-entropy' lists" $
+      entropy' 20 [5, 5, 5, 5] 2 > (entropy' 20 [1, 2, 2, 10, 5] 2) `shouldBe` True
+
+  describe "Lib.entropy" $ do
+    it "entropy xsum xs returns the same thing as entropy' xsum xs 2" $
+      (property :: (NonEmptyList (Positive Int) -> Bool) -> Property) $
+        \(coerce -> xs) ->
+          let xsum = foldl' (+) 0 (xs :: [Int])
+          in entropy xsum xs == entropy' xsum xs 2
+
+    it "returns ~5.700 bits for the entropy of drawing a specific card from a 52 card deck" $
+      (entropy 52 $ take 52 $ repeat 1) `shouldBe` 5.700439718141095
+
+    it "returns 2.0 bits for the entropy of drawing a specific suit from a 52 card deck" $
+      (entropy 52 $ take 4 $ repeat 13) `shouldBe` 2.0
+
