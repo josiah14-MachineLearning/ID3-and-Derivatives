@@ -26,6 +26,11 @@ dependencies:
 - hspec >= 2.0 && < 3
 - QuickCheck >= 2.0 && < 3
 - hoogle
+- Frames >= 0.3
+- foldl
+- vinyl
+- pipes
+- microlens
 
 library:
   source-dirs:

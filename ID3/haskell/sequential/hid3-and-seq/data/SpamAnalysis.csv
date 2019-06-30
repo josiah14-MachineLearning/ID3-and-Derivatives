@@ -1,0 +1,7 @@
+"SpamId","SuspiciousWords","UnknownSender","Images","SpamClass"
+376,True,False,True,"spam"
+489,True,True,False,"spam"
+541,True,True,False,"spam"
+693,False,True,True,"ham"
+782,False,False,False,"ham"
+976,False,False,False,"ham"
