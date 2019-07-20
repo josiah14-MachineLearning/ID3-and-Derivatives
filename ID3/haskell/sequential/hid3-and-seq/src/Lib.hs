@@ -1,4 +1,5 @@
-{-# LANGUAGE DataKinds, FlexibleContexts, QuasiQuotes, TemplateHaskell, OverloadedStrings #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DataKinds, FlexibleContexts, QuasiQuotes, TemplateHaskell, OverloadedStrings, AllowAmbiguousTypes #-}
 
 module Lib
     ( someFunc
@@ -13,6 +14,8 @@ module Lib
     , loadSpamOrHam
     , selectSuspiciousWords
     , onlySuspiciousWords
+    , uniqueSpam
+    , totalSetEntropy
     , SpamOrHam
     , SpamId
     , SuspiciousWords
@@ -27,12 +30,18 @@ module Lib
     ) where
 import Data.Foldable (foldl')
 import Data.Foldable as F
+import Data.List.Unique
 import qualified Control.Foldl as L
 import Data.Vinyl (rcast)
+import Data.Vinyl.Lens (RElem)
+import Data.Vinyl.TypeLevel (RIndex)
 import Frames
+import Frames.Rec (Record)
+import Frames.ColumnTypeable
 import Frames.CSV (readTableOpt, rowGen, RowGen(..))
 import Pipes hiding (Proxy)
 import Lens.Micro.Extras
+import Lens.Micro.Type
 import qualified Pipes.Prelude as P
 
 -- Data set from http://vincentarelbundock.github.io/Rdatasets/datasets.html
@@ -42,7 +51,7 @@ tableTypes "SpamOrHam" "data/SpamAnalysis.csv"
 -- someFunc = putStrLn $ show $ entropy' 15 [7, 4, 4] 2
 
 someFunc :: IO ()
-someFunc = show <$> totalSpamOrHamEntropy >>= putStrLn
+someFunc = show . totalSetEntropy spamClass <$> loadSpamOrHam >>= putStrLn
 
 streamSpamOrHam :: MonadSafe m => Producer SpamOrHam m ()
 streamSpamOrHam = readTableOpt spamOrHamParser "data/SpamAnalysis.csv"
@@ -62,13 +71,20 @@ selectSuspiciousWords = (\rows -> view suspiciousWords <$> rows) <$> loadSpamOrH
 onlySuspiciousWords :: SpamOrHam -> Record '[SuspiciousWords]
 onlySuspiciousWords = rcast
 
-totalSpamOrHamEntropy :: IO (Double)
-totalSpamOrHamEntropy = do
+uniqueSpam :: IO ([(Text, Int)])
+uniqueSpam = do
   soh <- loadSpamOrHam
   spamClassCol <- (\soh' -> F.toList $ view spamClass <$> soh') <$> loadSpamOrHam
-  return $ entropy (frameLength soh) [ length $ filter (== "spam") spamClassCol
-                                     , length $ filter (== "ham") spamClassCol
-                                     ]
+  return $ count spamClassCol
+
+
+-- example usage:
+--     totalSetEntropy spamClass <$> loadSpamOrHam
+-- => IO (1.0)
+totalSetEntropy :: Ord a => Getting a s a -> Frame s -> Double
+totalSetEntropy targetFeature frame =
+  entropy (frameLength frame) $ map snd $ count targetFeatureCol
+    where targetFeatureCol = F.toList $ view targetFeature <$> frame
 
 -- minMaxIncome :: IO (Maybe Int, Maybe Int)
 -- minMaxIncome = (\rows -> L.fold (L.handles income minMax) rows) <$> loadRows

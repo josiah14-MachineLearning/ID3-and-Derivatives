@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 88b77f84edf214a557d28e3f3a1dbf269d76a79bee5dc5b1dc90b398886aac23
+-- hash: 4f07916b3cdf96e37d57e3f4956d413a06cf77f49ee183f1cbba1d629cafabe2
 
 name:           hid3-and-seq
 version:        0.1.0.0
@@ -37,6 +37,7 @@ library
   build-depends:
       Frames >=0.3
     , QuickCheck >=2.0 && <3
+    , Unique >=0.4.7
     , base >=4.7 && <5
     , foldl
     , hoogle
@@ -58,6 +59,7 @@ executable hid3-and-seq-exe
   build-depends:
       Frames >=0.3
     , QuickCheck >=2.0 && <3
+    , Unique >=0.4.7
     , base >=4.7 && <5
     , foldl
     , ghcid
@@ -82,6 +84,7 @@ test-suite hid3-and-seq-test
   build-depends:
       Frames >=0.3
     , QuickCheck >=2.0 && <3
+    , Unique >=0.4.7
     , base >=4.7 && <5
     , foldl
     , hid3-and-seq
