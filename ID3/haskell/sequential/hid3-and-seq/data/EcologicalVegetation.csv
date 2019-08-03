@@ -1,0 +1,8 @@
+"EcoVegId","Stream","Slope","Elevation","Vegetation"
+1,False,"steep","high","chapparal"
+2,True,"moderate","low","riparian"
+3,True,"steep","medium","riparian"
+4,False,"steep","medium","chapparal"
+5,False,"flat","high","conifer"
+6,True,"steep","highest","conifer"
+7,True,"steep","high","chapparal"

@@ -31,6 +31,7 @@ dependencies:
 - vinyl
 - pipes
 - microlens
+- text
 - Unique >= 0.4.7
 
 library:

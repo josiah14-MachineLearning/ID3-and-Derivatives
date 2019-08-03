@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4f07916b3cdf96e37d57e3f4956d413a06cf77f49ee183f1cbba1d629cafabe2
+-- hash: 7f5da65f68951756f8887f1cdbe7fe4540e97990b31697add69ed520ba2d2adc
 
 name:           hid3-and-seq
 version:        0.1.0.0
@@ -46,6 +46,7 @@ library
     , optional-args <2
     , pipes
     , random >=1.1 && <2
+    , text
     , vinyl
   default-language: Haskell2010
 
@@ -70,6 +71,7 @@ executable hid3-and-seq-exe
     , optional-args <2
     , pipes
     , random >=1.1 && <2
+    , text
     , vinyl
   default-language: Haskell2010
 
@@ -94,5 +96,6 @@ test-suite hid3-and-seq-test
     , optional-args <2
     , pipes
     , random >=1.1 && <2
+    , text
     , vinyl
   default-language: Haskell2010

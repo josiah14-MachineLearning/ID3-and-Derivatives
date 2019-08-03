@@ -1,5 +1,4 @@
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE DataKinds, FlexibleContexts, QuasiQuotes, TemplateHaskell, OverloadedStrings, AllowAmbiguousTypes #-}
+{-# LANGUAGE TypeOperators, DataKinds, FlexibleContexts, QuasiQuotes, TemplateHaskell, OverloadedStrings, AllowAmbiguousTypes #-}
 
 module Lib
     ( someFunc
@@ -11,11 +10,11 @@ module Lib
     -- , minIncome
     -- , minMaxIncome
     , streamSpamOrHam
-    , loadSpamOrHam
     , selectSuspiciousWords
     , onlySuspiciousWords
     , uniqueSpam
     , totalSetEntropy
+    , loadSpamOrHam
     , SpamOrHam
     , SpamId
     , SuspiciousWords
@@ -41,6 +40,7 @@ import Frames.ColumnTypeable
 import Frames.CSV (readTableOpt, rowGen, RowGen(..))
 import Pipes hiding (Proxy)
 import Lens.Micro.Extras
+import Lens.Micro
 import Lens.Micro.Type
 import qualified Pipes.Prelude as P
 
@@ -58,6 +58,7 @@ streamSpamOrHam = readTableOpt spamOrHamParser "data/SpamAnalysis.csv"
 
 loadSpamOrHam :: IO (Frame SpamOrHam)
 loadSpamOrHam = inCoreAoS streamSpamOrHam
+
 
 -- minIncome :: IO (Maybe Int)
 -- minIncome = (\rows -> L.fold L.minimum (view income <$> rows)) <$> loadRows
