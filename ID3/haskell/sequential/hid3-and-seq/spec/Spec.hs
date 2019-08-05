@@ -86,3 +86,11 @@ main = hspec $ do
       cardsFrame <- loadPlayingCards
       (totalSetEntropy suit cardsFrame) `shouldBe` 2.0
 
+    it "Returns 5.700439718141095 bits for the Playing Cards dataset entropy when CardId is the target" $ do
+      cardsFrame <- loadPlayingCards
+      (totalSetEntropy cardId cardsFrame) `shouldBe` 5.700439718141095
+
+    it "Returns 3.7004397181410926 bits for the Playing Cards dataset entropy when Number is the target" $ do
+      cardsFrame <- loadPlayingCards
+      (totalSetEntropy number cardsFrame) `shouldBe` 3.7004397181410926
+

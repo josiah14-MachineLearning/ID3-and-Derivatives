@@ -1,4 +1,11 @@
-{-# LANGUAGE TypeOperators, DataKinds, FlexibleContexts, QuasiQuotes, TemplateHaskell, OverloadedStrings, AllowAmbiguousTypes #-}
+{-# LANGUAGE TypeOperators,
+             DataKinds,
+             FlexibleContexts,
+             QuasiQuotes,
+             TemplateHaskell,
+             OverloadedStrings,
+             AllowAmbiguousTypes,
+             RankNTypes, KindSignatures #-}
 
 module Lib
     ( someFunc
@@ -11,6 +18,7 @@ module Lib
     -- , minMaxIncome
     , streamSpamOrHam
     , selectSuspiciousWords
+    , selectUnknownSender
     , onlySuspiciousWords
     , uniqueSpam
     , totalSetEntropy
@@ -35,6 +43,7 @@ import Data.Vinyl (rcast)
 import Data.Vinyl.Lens (RElem)
 import Data.Vinyl.TypeLevel (RIndex)
 import Frames
+import Frames.InCore (RecVec)
 import Frames.Rec (Record)
 import Frames.ColumnTypeable
 import Frames.CSV (readTableOpt, rowGen, RowGen(..))
@@ -69,6 +78,10 @@ loadSpamOrHam = inCoreAoS streamSpamOrHam
 selectSuspiciousWords :: IO (Frame Bool)
 selectSuspiciousWords = (\rows -> view suspiciousWords <$> rows) <$> loadSpamOrHam
 
+
+selectUnknownSender :: IO (Frame SpamOrHam)
+selectUnknownSender = splitFrameOn unknownSender True <$> loadSpamOrHam
+
 onlySuspiciousWords :: SpamOrHam -> Record '[SuspiciousWords]
 onlySuspiciousWords = rcast
 
@@ -78,6 +91,16 @@ uniqueSpam = do
   spamClassCol <- (\soh' -> F.toList $ view spamClass <$> soh') <$> loadSpamOrHam
   return $ count spamClassCol
 
+
+-- example usage:
+--   F.toList <$> splitFrameOn unknownSender True <$> loadSpamOrHam
+-- => IO ([<rows where the UnknownSender column is True>])
+splitFrameOn :: (Eq a, Frames.InCore.RecVec rs) =>
+             (forall (f :: * -> *).
+                Functor f =>
+                (a -> f a) -> Record rs -> f (Record rs))
+             -> a -> FrameRec rs -> FrameRec rs
+splitFrameOn feature value = filterFrame (\r -> (==) (rget feature r) value)
 
 -- example usage:
 --     totalSetEntropy spamClass <$> loadSpamOrHam
