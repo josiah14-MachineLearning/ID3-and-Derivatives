@@ -34,10 +34,14 @@ module Lib
     , unknownSender
     , images
     , spamClass
+    , groupByIdx
+    , groupByCol
     ) where
+import Control.Foldl as Fl
 import Data.Foldable (foldl')
 import Data.Foldable as F
 import Data.List.Unique
+import Data.Map.Strict as M
 import qualified Control.Foldl as L
 import Data.Vinyl (rcast)
 import Data.Vinyl.Lens (RElem)
@@ -52,6 +56,13 @@ import Lens.Micro.Extras
 import Lens.Micro
 import Lens.Micro.Type
 import qualified Pipes.Prelude as P
+
+ -- define a Show instance for frames
+instance (Show a) => Show (Frame a) where
+  show (Frame l f) = (show $ f 0)
+                       ++ (if l>1 then "\n" ++ (show $ f 1) else "")
+                         ++ (if l>2 then "\n..." else "")
+                           ++ "\nFrame with " ++ (show l) ++ if(l>1) then " rows." else " row."
 
 -- Data set from http://vincentarelbundock.github.io/Rdatasets/datasets.html
 tableTypes "SpamOrHam" "data/SpamAnalysis.csv"
@@ -91,11 +102,29 @@ uniqueSpam = do
   spamClassCol <- (\soh' -> F.toList $ view spamClass <$> soh') <$> loadSpamOrHam
   return $ count spamClassCol
 
+-- ex: putStrLn $ show $ groupByIdx [1,2,3,4,1,2,1,2,4,2,1,2,3,2,1]
+-- => fromList [(1,[14,10,6,4,0]),(2,[13,11,9,7,5,1]),(3,[12,2]),(4,[8,3])]
+groupByIdx :: Ord a => [a] -> Map a [Int]
+groupByIdx = groupByIdx' 0 M.empty
+
+groupByIdx' :: Ord a => Int -> Map a [Int] -> [a] -> Map a [Int]
+groupByIdx' _ idxs [] = idxs
+groupByIdx' i idxs (v:vs) = groupByIdx' (i+1) idxs' vs
+    where idxs' = M.insertWith (\[new] old -> new:old) v [i] idxs
+
+groupByCol :: (Eq a, Ord a, RecVec rs) =>
+             (forall (f :: * -> *).
+                 Functor f =>
+                 (a -> f a) -> Record rs -> f (Record rs))
+             -> FrameRec rs -> Map a (FrameRec rs)
+groupByCol feature frame = M.map toFrame $ F.foldr' groupBy M.empty frame
+  where groupBy r = M.insertWith (\[new] old -> new:old) (view feature r) [r]
+
 
 -- example usage:
 --   F.toList <$> splitFrameOn unknownSender True <$> loadSpamOrHam
 -- => IO ([<rows where the UnknownSender column is True>])
-splitFrameOn :: (Eq a, Frames.InCore.RecVec rs) =>
+splitFrameOn :: (Eq a, RecVec rs) =>
              (forall (f :: * -> *).
                 Functor f =>
                 (a -> f a) -> Record rs -> f (Record rs))
@@ -107,7 +136,7 @@ splitFrameOn feature value = filterFrame (\r -> (==) (rget feature r) value)
 -- => IO (1.0)
 totalSetEntropy :: Ord a => Getting a s a -> Frame s -> Double
 totalSetEntropy targetFeature frame =
-  entropy (frameLength frame) $ map snd $ count targetFeatureCol
+  entropy (frameLength frame) $ fmap snd $ count targetFeatureCol
     where targetFeatureCol = F.toList $ view targetFeature <$> frame
 
 -- minMaxIncome :: IO (Maybe Int, Maybe Int)
@@ -119,7 +148,7 @@ totalSetEntropy targetFeature frame =
 
 entropy' :: (Foldable f, Floating b) => Int -> f Int -> Int -> b
 entropy' totalElements itemFrequencies logarithmicBase =
-  negate $ foldl' (\entropyAcc f -> entropyAcc + itemEntropy f) 0 itemFrequencies
+  negate $ F.foldl' (\entropyAcc f -> entropyAcc + itemEntropy f) 0 itemFrequencies
     where
       itemEntropy ifreq = let prob = (fromIntegral ifreq) / l
                           in prob * logBase b prob

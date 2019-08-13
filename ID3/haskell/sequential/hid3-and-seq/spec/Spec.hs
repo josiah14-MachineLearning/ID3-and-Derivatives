@@ -7,6 +7,7 @@ import Lib
 import Data.Text
 import qualified Data.List as L
 import Data.Coerce (coerce)
+import Data.Map
 
 import Frames.CSV (readTableOpt)
 import Frames (tableTypes, Frame, inCoreAoS)
@@ -93,4 +94,10 @@ main = hspec $ do
     it "Returns 3.7004397181410926 bits for the Playing Cards dataset entropy when Number is the target" $ do
       cardsFrame <- loadPlayingCards
       (totalSetEntropy number cardsFrame) `shouldBe` 3.7004397181410926
+
+  describe "Lib.groupByIdx" $ do
+    it "Returns the expected Map" $ do
+      let xs = [1,2,3,4,1,2,1,2,4,2,1,2,3,2,1]
+          expectedMap = fromList [(1,[14,10,6,4,0]),(2,[13,11,9,7,5,1]),(3,[12,2]),(4,[8,3])]
+      groupByIdx xs `shouldBe` expectedMap
 

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 7f5da65f68951756f8887f1cdbe7fe4540e97990b31697add69ed520ba2d2adc
+-- hash: 39af828ed37ca3af22a1c99ebb911fb5406ed06c6d7de96a6db66deeb226ffb1
 
 name:           hid3-and-seq
 version:        0.1.0.0
@@ -39,10 +39,12 @@ library
     , QuickCheck >=2.0 && <3
     , Unique >=0.4.7
     , base >=4.7 && <5
+    , containers
     , foldl
     , hoogle
     , hspec >=2.0 && <3
     , microlens
+    , mtl
     , optional-args <2
     , pipes
     , random >=1.1 && <2
@@ -62,12 +64,14 @@ executable hid3-and-seq-exe
     , QuickCheck >=2.0 && <3
     , Unique >=0.4.7
     , base >=4.7 && <5
+    , containers
     , foldl
     , ghcid
     , hid3-and-seq
     , hoogle
     , hspec >=2.0 && <3
     , microlens
+    , mtl
     , optional-args <2
     , pipes
     , random >=1.1 && <2
@@ -88,11 +92,13 @@ test-suite hid3-and-seq-test
     , QuickCheck >=2.0 && <3
     , Unique >=0.4.7
     , base >=4.7 && <5
+    , containers
     , foldl
     , hid3-and-seq
     , hoogle
     , hspec >=2.0 && <3
     , microlens
+    , mtl
     , optional-args <2
     , pipes
     , random >=1.1 && <2

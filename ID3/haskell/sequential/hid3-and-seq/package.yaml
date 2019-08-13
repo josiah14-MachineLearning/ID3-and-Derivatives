@@ -21,18 +21,20 @@ description:         Please see the README on GitHub at <https://github.com/josi
 
 dependencies:
 - base >= 4.7 && < 5
-- random >= 1.1 && < 2
-- optional-args < 2
-- hspec >= 2.0 && < 3
-- QuickCheck >= 2.0 && < 3
-- hoogle
-- Frames >= 0.3
+- containers
 - foldl
-- vinyl
-- pipes
+- Frames >= 0.3
+- hoogle
+- hspec >= 2.0 && < 3
 - microlens
+- mtl
+- optional-args < 2
+- pipes
+- QuickCheck >= 2.0 && < 3
+- random >= 1.1 && < 2
 - text
 - Unique >= 0.4.7
+- vinyl
 
 library:
   source-dirs:
