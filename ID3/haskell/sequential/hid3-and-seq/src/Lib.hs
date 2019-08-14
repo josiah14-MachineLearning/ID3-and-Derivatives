@@ -38,6 +38,7 @@ module Lib
     , groupByCol
     ) where
 import Control.Foldl as Fl
+import Control.Monad.ST
 import Data.Foldable (foldl')
 import Data.Foldable as F
 import Data.List.Unique
@@ -51,10 +52,10 @@ import Frames.InCore (RecVec)
 import Frames.Rec (Record)
 import Frames.ColumnTypeable
 import Frames.CSV (readTableOpt, rowGen, RowGen(..))
-import Pipes hiding (Proxy)
 import Lens.Micro.Extras
 import Lens.Micro
 import Lens.Micro.Type
+import qualified Pipes as P
 import qualified Pipes.Prelude as P
 
  -- define a Show instance for frames
@@ -73,7 +74,7 @@ tableTypes "SpamOrHam" "data/SpamAnalysis.csv"
 someFunc :: IO ()
 someFunc = show . totalSetEntropy spamClass <$> loadSpamOrHam >>= putStrLn
 
-streamSpamOrHam :: MonadSafe m => Producer SpamOrHam m ()
+streamSpamOrHam :: MonadSafe m => P.Producer SpamOrHam m ()
 streamSpamOrHam = readTableOpt spamOrHamParser "data/SpamAnalysis.csv"
 
 loadSpamOrHam :: IO (Frame SpamOrHam)
@@ -117,8 +118,21 @@ groupByCol :: (Eq a, Ord a, RecVec rs) =>
                  Functor f =>
                  (a -> f a) -> Record rs -> f (Record rs))
              -> FrameRec rs -> Map a (FrameRec rs)
-groupByCol feature frame = M.map toFrame $ F.foldr' groupBy M.empty frame
-  where groupBy r = M.insertWith (\[new] old -> new:old) (view feature r) [r]
+groupByCol feature frame = M.map toFrame $ F.foldl' groupBy M.empty frame
+  where groupBy m r = M.insertWith (\[new] old -> new:old) (view feature r) [r] m
+
+-- I couldn't figure out how to translate the above function that uses regular Foldl
+-- into the below function that uses the Pipes API.  There's too much in that library
+-- that I don't understand well enough to decipher exactly what's wrong with my
+-- current implementation.
+groupByCol' :: (Eq a, Ord a, RecVec rs) =>
+             (forall (f :: * -> *).
+                 Functor f =>
+                 (a -> f a) -> Record rs -> f (Record rs))
+             -> FrameRec rs -> Map a (FrameRec rs)
+groupByCol' feature frame =
+  P.fold groupBy M.empty toFrame (P.each frame)
+    where groupBy m r = M.insertWith (\[new] old -> new:old) (view feature r) [r] m
 
 
 -- example usage:
