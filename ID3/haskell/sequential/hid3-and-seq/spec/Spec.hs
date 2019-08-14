@@ -119,6 +119,10 @@ main = hspec $ do
           row0 = 489 &: True &: True &: False &: "spam" &: RNil
           row1 :: SpamOrHam
           row1 = 376 &: True &: False &: True &: "spam" &: RNil
-          testRows = F.toList $ groupByCol images spamFrame M.! False
-      testRows `shouldContain` [row0]
-      testRows `shouldNotContain` [row1]
+          groupingMap = groupByCol images spamFrame
+          falseRows = F.toList $ groupingMap M.! False
+          trueRows = F.toList $ groupingMap M.! True
+      falseRows `shouldContain` [row0]
+      falseRows `shouldNotContain` [row1]
+      trueRows `shouldContain` [row1]
+      trueRows `shouldNotContain` [row0]
