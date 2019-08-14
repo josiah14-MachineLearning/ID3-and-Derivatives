@@ -1,4 +1,12 @@
-{-# LANGUAGE ViewPatterns, TemplateHaskell, FlexibleContexts, DataKinds #-}
+{-# LANGUAGE TypeOperators,
+             ViewPatterns,
+             DataKinds,
+             FlexibleContexts,
+             QuasiQuotes,
+             TemplateHaskell,
+             OverloadedStrings,
+             AllowAmbiguousTypes,
+             RankNTypes, KindSignatures #-}
 
 import Test.Hspec
 import Test.QuickCheck
@@ -7,11 +15,14 @@ import Lib
 import Data.Text
 import qualified Data.List as L
 import Data.Coerce (coerce)
-import Data.Map
-
+import qualified Data.Map.Strict as M
+import Data.Vinyl (Rec(RNil))
+import Data.Foldable as F
 import Frames.CSV (readTableOpt)
-import Frames (tableTypes, Frame, inCoreAoS)
+import Frames (tableTypes, Frame, inCoreAoS, (&:), filterFrame)
 import Pipes (Producer)
+import Frames.Rec (Record)
+import Lens.Micro.Extras
 
 tableTypes "PlayingCards" "data/PlayingCards.csv"
 
@@ -98,6 +109,16 @@ main = hspec $ do
   describe "Lib.groupByIdx" $ do
     it "Returns the expected Map" $ do
       let xs = [1,2,3,4,1,2,1,2,4,2,1,2,3,2,1]
-          expectedMap = fromList [(1,[14,10,6,4,0]),(2,[13,11,9,7,5,1]),(3,[12,2]),(4,[8,3])]
+          expectedMap = M.fromList [(1,[14,10,6,4,0]),(2,[13,11,9,7,5,1]),(3,[12,2]),(4,[8,3])]
       groupByIdx xs `shouldBe` expectedMap
 
+  describe "Lib.groupByCol" $ do
+    it "Returns the expected map when splitting the Spam dataset on the Images column" $ do
+      spamFrame <- loadSpamOrHam
+      let row0 :: SpamOrHam
+          row0 = 489 &: True &: True &: False &: "spam" &: RNil
+          row1 :: SpamOrHam
+          row1 = 376 &: True &: False &: True &: "spam" &: RNil
+          testRows = F.toList $ groupByCol images spamFrame M.! False
+      testRows `shouldContain` [row0]
+      testRows `shouldNotContain` [row1]

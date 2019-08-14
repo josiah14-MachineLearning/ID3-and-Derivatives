@@ -125,14 +125,14 @@ groupByCol feature frame = M.map toFrame $ F.foldl' groupBy M.empty frame
 -- into the below function that uses the Pipes API.  There's too much in that library
 -- that I don't understand well enough to decipher exactly what's wrong with my
 -- current implementation.
-groupByCol' :: (Eq a, Ord a, RecVec rs) =>
-             (forall (f :: * -> *).
-                 Functor f =>
-                 (a -> f a) -> Record rs -> f (Record rs))
-             -> FrameRec rs -> Map a (FrameRec rs)
-groupByCol' feature frame =
-  P.fold groupBy M.empty toFrame (P.each frame)
-    where groupBy m r = M.insertWith (\[new] old -> new:old) (view feature r) [r] m
+-- groupByCol' :: (Eq a, Ord a, RecVec rs) =>
+--              (forall (f :: * -> *).
+--                  Functor f =>
+--                  (a -> f a) -> Record rs -> f (Record rs))
+--              -> FrameRec rs -> Map a (FrameRec rs)
+-- groupByCol' feature frame =
+--   P.fold groupBy M.empty toFrame (P.each frame)
+--     where groupBy m r = M.insertWith (\[new] old -> new:old) (view feature r) [r] m
 
 
 -- example usage:
@@ -143,7 +143,7 @@ splitFrameOn :: (Eq a, RecVec rs) =>
                 Functor f =>
                 (a -> f a) -> Record rs -> f (Record rs))
              -> a -> FrameRec rs -> FrameRec rs
-splitFrameOn feature value = filterFrame (\r -> (==) (rget feature r) value)
+splitFrameOn feature value = filterFrame (\r -> (==) (view feature r) value)
 
 -- example usage:
 --     totalSetEntropy spamClass <$> loadSpamOrHam
