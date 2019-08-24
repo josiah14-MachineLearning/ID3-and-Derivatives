@@ -45,10 +45,12 @@ import Data.Foldable (foldl')
 import Data.Foldable as F
 import Data.List.Unique
 import Data.Map.Strict as M
+import Data.Monoid
 import qualified Control.Foldl as L
 import Data.Vinyl (rcast)
 import Data.Vinyl.Lens (RElem)
 import Data.Vinyl.TypeLevel (RIndex)
+import qualified Data.Vector as V
 import Frames
 import Frames.InCore (RecVec)
 import Frames.Rec (Record)
@@ -131,6 +133,23 @@ groupByCol' :: (Eq a, Ord a, RecVec rs) =>
 groupByCol' feature frame =
   runIdentity $ P.fold groupBy M.empty (M.map toFrame) (P.each frame)
     where groupBy m r = M.insertWith (\[new] old -> new:old) (view feature r) [r] m
+
+groupByCol'' :: (Eq a, Ord a, RecVec rs) =>
+             (forall (f :: * -> *).
+                 Functor f =>
+                 (a -> f a) -> Record rs -> f (Record rs))
+             -> FrameRec rs -> Map a (FrameRec rs)
+groupByCol'' feature frame =
+  M.map mkFrame $ F.foldl' groupBy M.empty [0..(frameLength frame - 1)]
+    where
+      mkFrame is = Frame { frameLength = V.length is
+                         , frameRow = \i -> frameRow frame $ is V.! i
+                         }
+      groupBy m i = M.insertWith
+        (\svec vec -> svec <> vec)
+        (view feature $ frameRow frame i)
+        (V.singleton i)
+        m
 
 
 -- example usage:

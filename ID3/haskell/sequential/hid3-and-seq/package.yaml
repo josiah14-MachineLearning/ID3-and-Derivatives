@@ -35,6 +35,7 @@ dependencies:
 - text
 - Unique >= 0.4.7
 - vinyl
+- vector
 
 library:
   source-dirs:

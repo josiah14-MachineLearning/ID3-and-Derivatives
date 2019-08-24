@@ -37,7 +37,8 @@ packages:
 # Dependency packages to be pulled from upstream that are not in the resolver
 # using the same syntax as the packages field.
 # (e.g., acme-missiles-0.3)
-#extra-deps:
+extra-deps:
+- stm-2.4.5.1@sha256:58277444d1abca90ea947cd04a4a5d219eb5013cdba4178d168659b56294c3d8,2076
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
