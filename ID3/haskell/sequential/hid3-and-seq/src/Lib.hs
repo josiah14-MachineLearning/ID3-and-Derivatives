@@ -37,10 +37,12 @@ module Lib
     , groupByIdx
     , groupByCol
     , groupByCol'
+    , groupByCol''
     ) where
 import Control.Foldl as Fl
 import Control.Monad.ST
 import Control.Monad.Identity
+import Control.Applicative
 import Data.Foldable (foldl')
 import Data.Foldable as F
 import Data.List.Unique
@@ -145,11 +147,8 @@ groupByCol'' feature frame =
       mkFrame is = Frame { frameLength = V.length is
                          , frameRow = \i -> frameRow frame $ is V.! i
                          }
-      groupBy m i = M.insertWith
-        (\svec vec -> svec <> vec)
-        (view feature $ frameRow frame i)
-        (V.singleton i)
-        m
+      groupBy m i =
+        M.insertWith (<>) (view feature $ frameRow frame i) (pure i) m
 
 
 -- example usage:

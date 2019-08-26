@@ -39,6 +39,8 @@ packages:
 # (e.g., acme-missiles-0.3)
 extra-deps:
 - stm-2.4.5.1@sha256:58277444d1abca90ea947cd04a4a5d219eb5013cdba4178d168659b56294c3d8,2076
+- cabal-plan-0.4.0.0@sha256:0bb2b5194d7f757437a55b98d8c35312d362f5912268668dc2faa2ca977b3b98
+- pretty-show-1.8.2@sha256:e16e0174bf4ad3dae49fea69b1f65ca9d8d4b61b3d80c78fbe3320f2181e92e9
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

@@ -143,3 +143,19 @@ main = hspec $ do
       falseRows `shouldNotContain` [row1]
       trueRows `shouldContain` [row1]
       trueRows `shouldNotContain` [row0]
+
+  describe "Lib.groupByCol''" $ do
+    it "Returns the expected map when splitting the Spam dataset on the Images column" $ do
+      -- type SpamOrHam = Record '[SpamId :-> Int, SuspiciousWords :-> Bool, UnknownSender :-> Bool, Images :-> Bool, SpamClass :-> Text]
+      spamFrame <- loadSpamOrHam
+      let row0 :: SpamOrHam
+          row0 = 489 &: True &: True &: False &: "spam" &: RNil
+          row1 :: SpamOrHam
+          row1 = 376 &: True &: False &: True &: "spam" &: RNil
+          groupingMap = groupByCol'' images spamFrame
+          falseRows = F.toList $ groupingMap M.! False
+          trueRows = F.toList $ groupingMap M.! True
+      falseRows `shouldContain` [row0]
+      falseRows `shouldNotContain` [row1]
+      trueRows `shouldContain` [row1]
+      trueRows `shouldNotContain` [row0]
