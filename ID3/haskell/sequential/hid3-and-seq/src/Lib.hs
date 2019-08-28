@@ -34,7 +34,6 @@ module Lib
     , unknownSender
     , images
     , spamClass
-    , groupByIdx
     , groupByCol
     , groupByCol'
     , groupByCol''
@@ -47,12 +46,11 @@ import Data.Foldable (foldl')
 import Data.Foldable as F
 import Data.List.Unique
 import Data.Map.Strict as M
-import Data.Monoid
 import qualified Control.Foldl as L
 import Data.Vinyl (rcast)
 import Data.Vinyl.Lens (RElem)
 import Data.Vinyl.TypeLevel (RIndex)
-import qualified Data.Vector as V
+import qualified Data.Vector.Unboxed as V
 import Frames
 import Frames.InCore (RecVec)
 import Frames.Rec (Record)
@@ -78,7 +76,9 @@ tableTypes "SpamOrHam" "data/SpamAnalysis.csv"
 -- someFunc = putStrLn $ show $ entropy' 15 [7, 4, 4] 2
 
 someFunc :: IO ()
-someFunc = show . totalSetEntropy spamClass <$> loadSpamOrHam >>= putStrLn
+someFunc = do
+  frame <- loadSpamOrHam
+  putStrLn $ show $ entropyOnCol frame spamClass images
 
 streamSpamOrHam :: MonadSafe m => P.Producer SpamOrHam m ()
 streamSpamOrHam = readTableOpt spamOrHamParser "data/SpamAnalysis.csv"
@@ -86,16 +86,8 @@ streamSpamOrHam = readTableOpt spamOrHamParser "data/SpamAnalysis.csv"
 loadSpamOrHam :: IO (Frame SpamOrHam)
 loadSpamOrHam = inCoreAoS streamSpamOrHam
 
-
--- minIncome :: IO (Maybe Int)
--- minIncome = (\rows -> L.fold L.minimum (view income <$> rows)) <$> loadRows
-
--- minIncome' :: IO (Maybe Int)
--- minIncome' = (\rows -> L.fold (L.handles income L.minimum) rows) <$> loadRows
-
 selectSuspiciousWords :: IO (Frame Bool)
 selectSuspiciousWords = (\rows -> view suspiciousWords <$> rows) <$> loadSpamOrHam
-
 
 selectUnknownSender :: IO (Frame SpamOrHam)
 selectUnknownSender = splitFrameOn unknownSender True <$> loadSpamOrHam
@@ -109,22 +101,12 @@ uniqueSpam = do
   spamClassCol <- (\soh' -> F.toList $ view spamClass <$> soh') <$> loadSpamOrHam
   return $ count spamClassCol
 
--- ex: putStrLn $ show $ groupByIdx [1,2,3,4,1,2,1,2,4,2,1,2,3,2,1]
--- => fromList [(1,[14,10,6,4,0]),(2,[13,11,9,7,5,1]),(3,[12,2]),(4,[8,3])]
-groupByIdx :: Ord a => [a] -> Map a [Int]
-groupByIdx = groupByIdx' 0 M.empty
-
-groupByIdx' :: Ord a => Int -> Map a [Int] -> [a] -> Map a [Int]
-groupByIdx' _ idxs [] = idxs
-groupByIdx' i idxs (v:vs) = groupByIdx' (i+1) idxs' vs
-    where idxs' = M.insertWith (\[new] old -> new:old) v [i] idxs
-
-groupByCol :: (Eq a, Ord a, RecVec rs) =>
+groupByCol'' :: (Eq a, Ord a, RecVec rs) =>
              (forall (f :: * -> *).
                  Functor f =>
                  (a -> f a) -> Record rs -> f (Record rs))
              -> FrameRec rs -> Map a (FrameRec rs)
-groupByCol feature frame = M.map toFrame $ F.foldl' groupBy M.empty frame
+groupByCol'' feature frame = M.map toFrame $ F.foldl' groupBy M.empty frame
   where groupBy m r = M.insertWith (\[new] old -> new:old) (view feature r) [r] m
 
 groupByCol' :: (Eq a, Ord a, RecVec rs) =>
@@ -136,20 +118,27 @@ groupByCol' feature frame =
   runIdentity $ P.fold groupBy M.empty (M.map toFrame) (P.each frame)
     where groupBy m r = M.insertWith (\[new] old -> new:old) (view feature r) [r] m
 
-groupByCol'' :: (Eq a, Ord a, RecVec rs) =>
+entropyOnCol :: (Ord a, Eq a, Ord b, Eq b, RecVec rs) =>
+                FrameRec rs
+             -> (forall (f :: * -> *).
+                 Functor f => (a -> f a) -> Record rs -> f (Record rs))
+             -> (forall (f :: * -> *).
+                 Functor f => (b -> f b) -> Record rs -> f (Record rs))
+             -> Double
+entropyOnCol frame tgtFeature descrFeature =
+  F.sum $ M.map (totalSetEntropy tgtFeature) $ groupByCol descrFeature frame
+
+groupByCol :: (Eq a, Ord a, RecVec rs) =>
              (forall (f :: * -> *).
                  Functor f =>
                  (a -> f a) -> Record rs -> f (Record rs))
              -> FrameRec rs -> Map a (FrameRec rs)
-groupByCol'' feature frame =
+groupByCol feature frame =
   M.map mkFrame $ F.foldl' groupBy M.empty [0..(frameLength frame - 1)]
     where
-      mkFrame is = Frame { frameLength = V.length is
-                         , frameRow = \i -> frameRow frame $ is V.! i
-                         }
+      mkFrame is = Frame (V.length is) $ frameRow frame . (V.!) is
       groupBy m i =
-        M.insertWith (<>) (view feature $ frameRow frame i) (pure i) m
-
+        M.insertWith (V.++) (view feature $ frameRow frame i) (V.singleton i) m
 
 -- example usage:
 --   F.toList <$> splitFrameOn unknownSender True <$> loadSpamOrHam
@@ -159,7 +148,7 @@ splitFrameOn :: (Eq a, RecVec rs) =>
                 Functor f =>
                 (a -> f a) -> Record rs -> f (Record rs))
              -> a -> FrameRec rs -> FrameRec rs
-splitFrameOn feature value = filterFrame (\r -> (==) (view feature r) value)
+splitFrameOn feature value = filterFrame (\r -> (view feature r) == value)
 
 -- example usage:
 --     totalSetEntropy spamClass <$> loadSpamOrHam
