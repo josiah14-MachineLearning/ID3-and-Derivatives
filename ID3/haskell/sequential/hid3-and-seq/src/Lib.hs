@@ -46,6 +46,7 @@ import Data.Foldable (foldl')
 import Data.Foldable as F
 import Data.List.Unique
 import Data.Map.Strict as M
+import Data.Function (on)
 import qualified Control.Foldl as L
 import Data.Vinyl (rcast)
 import Data.Vinyl.Lens (RElem)
@@ -139,10 +140,9 @@ remainingEntropy :: (Ord a, Eq a, Ord b, Eq b, RecVec rs) =>
 remainingEntropy frame targetFeature descriptiveFeature =
   F.sum $ M.map groupRemEntropy $ groupByCol descriptiveFeature frame
     where
-      totalRecs = fromIntegral $ frameLength frame
-      groupRecs = fromIntegral . frameLength
+      (//) = (/) `on` fromIntegral
       groupRemEntropy f =
-        groupRecs f / totalRecs * frameEntropy targetFeature f
+        frameLength f // frameLength frame * frameEntropy targetFeature f
 
 groupByCol :: (Eq a, Ord a, RecVec rs) =>
              (forall (f :: * -> *).
