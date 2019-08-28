@@ -78,7 +78,7 @@ tableTypes "SpamOrHam" "data/SpamAnalysis.csv"
 someFunc :: IO ()
 someFunc = do
   frame <- loadSpamOrHam
-  putStrLn $ show $ entropyOnCol frame spamClass images
+  putStrLn $ show $ remainingEntropy frame spamClass unknownSender
 
 streamSpamOrHam :: MonadSafe m => P.Producer SpamOrHam m ()
 streamSpamOrHam = readTableOpt spamOrHamParser "data/SpamAnalysis.csv"
@@ -118,15 +118,20 @@ groupByCol' feature frame =
   runIdentity $ P.fold groupBy M.empty (M.map toFrame) (P.each frame)
     where groupBy m r = M.insertWith (\[new] old -> new:old) (view feature r) [r] m
 
-entropyOnCol :: (Ord a, Eq a, Ord b, Eq b, RecVec rs) =>
+remainingEntropy :: (Ord a, Eq a, Ord b, Eq b, RecVec rs) =>
                 FrameRec rs
              -> (forall (f :: * -> *).
                  Functor f => (a -> f a) -> Record rs -> f (Record rs))
              -> (forall (f :: * -> *).
                  Functor f => (b -> f b) -> Record rs -> f (Record rs))
              -> Double
-entropyOnCol frame tgtFeature descrFeature =
-  F.sum $ M.map (totalSetEntropy tgtFeature) $ groupByCol descrFeature frame
+remainingEntropy frame targetFeature descriptiveFeature =
+  F.sum $ M.map groupRemEntropy $ groupByCol descriptiveFeature frame
+    where
+      totalRecs = fromIntegral $ frameLength frame
+      groupRecs = fromIntegral . frameLength
+      groupRemEntropy f =
+        groupRecs f / totalRecs * totalSetEntropy targetFeature f
 
 groupByCol :: (Eq a, Ord a, RecVec rs) =>
              (forall (f :: * -> *).
