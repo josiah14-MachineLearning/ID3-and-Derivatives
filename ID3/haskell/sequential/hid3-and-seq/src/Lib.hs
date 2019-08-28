@@ -21,7 +21,7 @@ module Lib
     , selectUnknownSender
     , onlySuspiciousWords
     , uniqueSpam
-    , totalSetEntropy
+    , frameEntropy
     , loadSpamOrHam
     , SpamOrHam
     , SpamId
@@ -78,7 +78,7 @@ tableTypes "SpamOrHam" "data/SpamAnalysis.csv"
 someFunc :: IO ()
 someFunc = do
   frame <- loadSpamOrHam
-  putStrLn $ show $ remainingEntropy frame spamClass unknownSender
+  putStrLn $ show $ informationGain frame spamClass suspiciousWords
 
 streamSpamOrHam :: MonadSafe m => P.Producer SpamOrHam m ()
 streamSpamOrHam = readTableOpt spamOrHamParser "data/SpamAnalysis.csv"
@@ -118,6 +118,17 @@ groupByCol' feature frame =
   runIdentity $ P.fold groupBy M.empty (M.map toFrame) (P.each frame)
     where groupBy m r = M.insertWith (\[new] old -> new:old) (view feature r) [r] m
 
+informationGain :: (Ord a, Eq a, Ord b, Eq b, RecVec rs) =>
+                FrameRec rs
+             -> (forall (f :: * -> *).
+                 Functor f => (a -> f a) -> Record rs -> f (Record rs))
+             -> (forall (f :: * -> *).
+                 Functor f => (b -> f b) -> Record rs -> f (Record rs))
+             -> Double
+informationGain frame targetFeature descriptiveFeature =
+  (-) (frameEntropy targetFeature frame)
+      (remainingEntropy frame targetFeature descriptiveFeature)
+
 remainingEntropy :: (Ord a, Eq a, Ord b, Eq b, RecVec rs) =>
                 FrameRec rs
              -> (forall (f :: * -> *).
@@ -131,7 +142,7 @@ remainingEntropy frame targetFeature descriptiveFeature =
       totalRecs = fromIntegral $ frameLength frame
       groupRecs = fromIntegral . frameLength
       groupRemEntropy f =
-        groupRecs f / totalRecs * totalSetEntropy targetFeature f
+        groupRecs f / totalRecs * frameEntropy targetFeature f
 
 groupByCol :: (Eq a, Ord a, RecVec rs) =>
              (forall (f :: * -> *).
@@ -156,10 +167,10 @@ splitFrameOn :: (Eq a, RecVec rs) =>
 splitFrameOn feature value = filterFrame (\r -> (view feature r) == value)
 
 -- example usage:
---     totalSetEntropy spamClass <$> loadSpamOrHam
+--     frameEntropy spamClass <$> loadSpamOrHam
 -- => IO (1.0)
-totalSetEntropy :: Ord a => Getting a s a -> Frame s -> Double
-totalSetEntropy targetFeature frame =
+frameEntropy :: Ord a => Getting a s a -> Frame s -> Double
+frameEntropy targetFeature frame =
   entropy (frameLength frame) $ fmap snd $ count targetFeatureCol
     where targetFeatureCol = F.toList $ view targetFeature <$> frame
 

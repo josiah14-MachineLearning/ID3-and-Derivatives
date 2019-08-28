@@ -85,32 +85,26 @@ main = hspec $ do
       (entropy 52 $ Prelude.take 4 $ repeat 13) `shouldBe` 2.0
 
 
-  describe "Lib.totalSetEntropy" $ do
+  describe "Lib.frameEntropy" $ do
     it "Returns 1.0 bits for the Spam dataset entropy" $ do
       spamFrame <- loadSpamOrHam
-      (totalSetEntropy spamClass spamFrame) `shouldBe` 1.0
+      (frameEntropy spamClass spamFrame) `shouldBe` 1.0
 
     it "Returns 1.5566567074628228 bits for the Ecological Vegetation dataset entropy" $ do
       ecoVegFrame <- loadEcoVeg
-      (totalSetEntropy vegetation ecoVegFrame) `shouldBe` 1.5566567074628228
+      (frameEntropy vegetation ecoVegFrame) `shouldBe` 1.5566567074628228
 
     it "Returns 2.0 bits for the Playing Cards dataset entropy when Suit is the target feature" $ do
       cardsFrame <- loadPlayingCards
-      (totalSetEntropy suit cardsFrame) `shouldBe` 2.0
+      (frameEntropy suit cardsFrame) `shouldBe` 2.0
 
     it "Returns 5.700439718141095 bits for the Playing Cards dataset entropy when CardId is the target" $ do
       cardsFrame <- loadPlayingCards
-      (totalSetEntropy cardId cardsFrame) `shouldBe` 5.700439718141095
+      (frameEntropy cardId cardsFrame) `shouldBe` 5.700439718141095
 
     it "Returns 3.7004397181410926 bits for the Playing Cards dataset entropy when Number is the target" $ do
       cardsFrame <- loadPlayingCards
-      (totalSetEntropy number cardsFrame) `shouldBe` 3.7004397181410926
-
-  describe "Lib.groupByIdx" $ do
-    it "Returns the expected Map" $ do
-      let xs = [1,2,3,4,1,2,1,2,4,2,1,2,3,2,1]
-          expectedMap = M.fromList [(1,[14,10,6,4,0]),(2,[13,11,9,7,5,1]),(3,[12,2]),(4,[8,3])]
-      groupByIdx xs `shouldBe` expectedMap
+      (frameEntropy number cardsFrame) `shouldBe` 3.7004397181410926
 
   describe "Lib.groupByCol" $ do
     it "Returns the expected map when splitting the Spam dataset on the Images column" $ do
