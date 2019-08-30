@@ -79,7 +79,7 @@ tableTypes "SpamOrHam" "data/SpamAnalysis.csv"
 someFunc :: IO ()
 someFunc = do
   frame <- loadSpamOrHam
-  putStrLn $ show $ informationGain frame spamClass suspiciousWords
+  putStrLn $ show $ informationGain frame spamClass $ groupByCol suspiciousWords frame
 
 streamSpamOrHam :: MonadSafe m => P.Producer SpamOrHam m ()
 streamSpamOrHam = readTableOpt spamOrHamParser "data/SpamAnalysis.csv"
@@ -103,51 +103,45 @@ uniqueSpam = do
   return $ count spamClassCol
 
 groupByCol'' :: (Eq a, Ord a, RecVec rs) =>
-             (forall (f :: * -> *).
-                 Functor f =>
-                 (a -> f a) -> Record rs -> f (Record rs))
+             (forall f. Functor f => (a -> f a) -> Record rs -> f (Record rs))
              -> FrameRec rs -> Map a (FrameRec rs)
 groupByCol'' feature frame = M.map toFrame $ F.foldl' groupBy M.empty frame
   where groupBy m r = M.insertWith (\[new] old -> new:old) (view feature r) [r] m
 
 groupByCol' :: (Eq a, Ord a, RecVec rs) =>
-             (forall (f :: * -> *).
-                 Functor f =>
-                 (a -> f a) -> Record rs -> f (Record rs))
+             (forall f. Functor f => (a -> f a) -> Record rs -> f (Record rs))
              -> FrameRec rs -> Map a (FrameRec rs)
 groupByCol' feature frame =
   runIdentity $ P.fold groupBy M.empty (M.map toFrame) (P.each frame)
     where groupBy m r = M.insertWith (\[new] old -> new:old) (view feature r) [r] m
 
+-- Pass the grouped frame in instead of the descriptiveFeature, and then
+-- run through the list of descriptiveFeatures available while using the
+-- ST monad to keep track of the min as the algo progresses through
+-- the list.
 informationGain :: (Ord a, Eq a, Ord b, Eq b, RecVec rs) =>
                 FrameRec rs
-             -> (forall (f :: * -> *).
-                 Functor f => (a -> f a) -> Record rs -> f (Record rs))
-             -> (forall (f :: * -> *).
-                 Functor f => (b -> f b) -> Record rs -> f (Record rs))
+             -> (forall f. Functor f => (a -> f a) -> Record rs -> f (Record rs))
+             -> Map b (FrameRec rs)
              -> Double
-informationGain frame targetFeature descriptiveFeature =
+informationGain frame targetFeature groupedFrames =
   (-) (frameEntropy targetFeature frame)
-      (remainingEntropy frame targetFeature descriptiveFeature)
+      (remainingEntropy frame targetFeature groupedFrames)
 
 remainingEntropy :: (Ord a, Eq a, Ord b, Eq b, RecVec rs) =>
                 FrameRec rs
-             -> (forall (f :: * -> *).
-                 Functor f => (a -> f a) -> Record rs -> f (Record rs))
-             -> (forall (f :: * -> *).
-                 Functor f => (b -> f b) -> Record rs -> f (Record rs))
+             -> (forall f. Functor f => (a -> f a) -> Record rs -> f (Record rs))
+             -> Map b (FrameRec rs)
              -> Double
-remainingEntropy frame targetFeature descriptiveFeature =
-  F.sum $ M.map groupRemEntropy $ groupByCol descriptiveFeature frame
+remainingEntropy frame targetFeature groupedFrames =
+  F.sum $ M.map groupRemEntropy groupedFrames
     where
       (//) = (/) `on` fromIntegral
       groupRemEntropy f =
         frameLength f // frameLength frame * frameEntropy targetFeature f
 
 groupByCol :: (Eq a, Ord a, RecVec rs) =>
-             (forall (f :: * -> *).
-                 Functor f =>
-                 (a -> f a) -> Record rs -> f (Record rs))
+             (forall f. Functor f => (a -> f a) -> Record rs -> f (Record rs))
              -> FrameRec rs -> Map a (FrameRec rs)
 groupByCol feature frame =
   M.map mkFrame $ F.foldl' groupBy M.empty [0..(frameLength frame - 1)]
@@ -160,9 +154,7 @@ groupByCol feature frame =
 --   F.toList <$> splitFrameOn unknownSender True <$> loadSpamOrHam
 -- => IO ([<rows where the UnknownSender column is True>])
 splitFrameOn :: (Eq a, RecVec rs) =>
-             (forall (f :: * -> *).
-                Functor f =>
-                (a -> f a) -> Record rs -> f (Record rs))
+             (forall f. Functor f => (a -> f a) -> Record rs -> f (Record rs))
              -> a -> FrameRec rs -> FrameRec rs
 splitFrameOn feature value = filterFrame (\r -> (view feature r) == value)
 
