@@ -120,13 +120,13 @@ groupByCol' feature frame =
 -- ST monad to keep track of the min as the algo progresses through
 -- the list.
 informationGain :: (Ord a, Eq a, Ord b, Eq b, RecVec rs) =>
-                FrameRec rs
+                Double
+             -> FrameRec rs
              -> (forall f. Functor f => (a -> f a) -> Record rs -> f (Record rs))
              -> Map b (FrameRec rs)
              -> Double
-informationGain frame targetFeature groupedFrames =
-  (-) (frameEntropy targetFeature frame)
-      (remainingEntropy frame targetFeature groupedFrames)
+informationGain originalEntropy frame targetFeature groupedFrames =
+  originalEntropy - remainingEntropy frame targetFeature groupedFrames
 
 remainingEntropy :: (Ord a, Eq a, Ord b, Eq b, RecVec rs) =>
                 FrameRec rs
