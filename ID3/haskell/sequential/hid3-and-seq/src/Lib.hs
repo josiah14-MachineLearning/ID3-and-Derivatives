@@ -118,10 +118,10 @@ groupByCol' feature frame =
     where groupBy m r = M.insertWith (\[new] old -> new:old) (view feature r) [r] m
 
 
-findMostInfomativeFeature :: (Ord a, Eq a, Ord b, Eq b, RecVec rs) =>
+findMostInfomativeFeature :: (Ord a, Ord b, RecVec rs) =>
                           FrameRec rs
                         -> (forall f. Functor f => (a -> f a) -> Record rs -> f (Record rs))
-                        -> [(forall f. Functor f => (b -> f b) -> Record rs -> f (Record rs))]
+                        -> (forall f. Functor f => [(b -> f b) -> Record rs -> f (Record rs)])
                         -> (forall f. Functor f => (b -> f b) -> Record rs -> f (Record rs))
 findMostInfomativeFeature frame targetFeature descriptiveFeatures = undefined
 
