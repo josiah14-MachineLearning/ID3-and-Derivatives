@@ -11,6 +11,20 @@ packages:
       sha256: 6eb4e823293fc1f53459135269fb38d9926234ef589526e5ab57f9380aa4d29f
   original:
     hackage: stm-2.4.5.1@sha256:58277444d1abca90ea947cd04a4a5d219eb5013cdba4178d168659b56294c3d8,2076
+- completed:
+    hackage: cabal-plan-0.4.0.0@sha256:0bb2b5194d7f757437a55b98d8c35312d362f5912268668dc2faa2ca977b3b98,4375
+    pantry-tree:
+      size: 526
+      sha256: 522d1884042130498cb955276e3d240ba570eec9146befd82ead9510ea485678
+  original:
+    hackage: cabal-plan-0.4.0.0@sha256:0bb2b5194d7f757437a55b98d8c35312d362f5912268668dc2faa2ca977b3b98
+- completed:
+    hackage: pretty-show-1.8.2@sha256:e16e0174bf4ad3dae49fea69b1f65ca9d8d4b61b3d80c78fbe3320f2181e92e9,1858
+    pantry-tree:
+      size: 807
+      sha256: 6dca0a3fdd9afb13c6639d5151cc5eea9406b820da508bf43766861817185825
+  original:
+    hackage: pretty-show-1.8.2@sha256:e16e0174bf4ad3dae49fea69b1f65ca9d8d4b61b3d80c78fbe3320f2181e92e9
 snapshots:
 - completed:
     size: 527836

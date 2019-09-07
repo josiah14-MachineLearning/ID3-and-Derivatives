@@ -79,7 +79,9 @@ tableTypes "SpamOrHam" "data/SpamAnalysis.csv"
 someFunc :: IO ()
 someFunc = do
   frame <- loadSpamOrHam
-  putStrLn $ show $ informationGain frame spamClass $ groupByCol suspiciousWords frame
+  putStrLn $ show
+    $ informationGain (frameEntropy spamClass frame) frame spamClass
+    $ groupByCol unknownSender frame
 
 streamSpamOrHam :: MonadSafe m => P.Producer SpamOrHam m ()
 streamSpamOrHam = readTableOpt spamOrHamParser "data/SpamAnalysis.csv"
@@ -115,20 +117,28 @@ groupByCol' feature frame =
   runIdentity $ P.fold groupBy M.empty (M.map toFrame) (P.each frame)
     where groupBy m r = M.insertWith (\[new] old -> new:old) (view feature r) [r] m
 
+
+findMostInfomativeFeature :: (Ord a, Eq a, Ord b, Eq b, RecVec rs) =>
+                          FrameRec rs
+                        -> (forall f. Functor f => (a -> f a) -> Record rs -> f (Record rs))
+                        -> [(forall f. Functor f => (b -> f b) -> Record rs -> f (Record rs))]
+                        -> (forall f. Functor f => (b -> f b) -> Record rs -> f (Record rs))
+findMostInfomativeFeature frame targetFeature descriptiveFeatures = undefined
+
 -- Pass the grouped frame in instead of the descriptiveFeature, and then
 -- run through the list of descriptiveFeatures available while using the
 -- ST monad to keep track of the min as the algo progresses through
 -- the list.
-informationGain :: (Ord a, Eq a, Ord b, Eq b, RecVec rs) =>
-                FrameRec rs
+informationGain :: (Ord a, Ord b, RecVec rs) =>
+                Double
+             -> FrameRec rs
              -> (forall f. Functor f => (a -> f a) -> Record rs -> f (Record rs))
              -> Map b (FrameRec rs)
              -> Double
-informationGain frame targetFeature groupedFrames =
-  (-) (frameEntropy targetFeature frame)
-      (remainingEntropy frame targetFeature groupedFrames)
+informationGain originalEntropy frame targetFeature groupedFrames =
+  originalEntropy - remainingEntropy frame targetFeature groupedFrames
 
-remainingEntropy :: (Ord a, Eq a, Ord b, Eq b, RecVec rs) =>
+remainingEntropy :: (Ord a, Ord b, RecVec rs) =>
                 FrameRec rs
              -> (forall f. Functor f => (a -> f a) -> Record rs -> f (Record rs))
              -> Map b (FrameRec rs)
@@ -140,7 +150,7 @@ remainingEntropy frame targetFeature groupedFrames =
       groupRemEntropy f =
         frameLength f // frameLength frame * frameEntropy targetFeature f
 
-groupByCol :: (Eq a, Ord a, RecVec rs) =>
+groupByCol :: (Ord a, RecVec rs) =>
              (forall f. Functor f => (a -> f a) -> Record rs -> f (Record rs))
              -> FrameRec rs -> Map a (FrameRec rs)
 groupByCol feature frame =
