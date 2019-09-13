@@ -5,7 +5,9 @@
              TemplateHaskell,
              OverloadedStrings,
              AllowAmbiguousTypes,
-             RankNTypes, KindSignatures #-}
+             RankNTypes,
+             KindSignatures
+#-}
 
 module Lib
     ( someFunc
@@ -34,6 +36,7 @@ module Lib
     , unknownSender
     , images
     , spamClass
+    , findMostInfomativeFeature
     , groupByCol
     , groupByCol'
     , groupByCol''
@@ -41,7 +44,7 @@ module Lib
 import Control.Foldl as Fl
 import Control.Monad.ST
 import Control.Monad.Identity
-import Control.Applicative
+import Control.Applicative hiding (Const)
 import Data.Foldable (foldl')
 import Data.Foldable as F
 import Data.List.Unique
@@ -49,6 +52,9 @@ import Data.Map.Strict as M
 import Data.Function (on)
 import qualified Control.Foldl as L
 import Data.Vinyl (rcast)
+import Data.Vinyl.Core (rmap, recordToList)
+import Data.Vinyl.Functor (getIdentity)
+import qualified Data.Vinyl.Functor as VF
 import Data.Vinyl.Lens (RElem)
 import Data.Vinyl.TypeLevel (RIndex)
 import qualified Data.Vector.Unboxed as V
@@ -118,12 +124,31 @@ groupByCol' feature frame =
     where groupBy m r = M.insertWith (\[new] old -> new:old) (view feature r) [r] m
 
 
-findMostInfomativeFeature :: (Ord a, Ord b, RecVec rs) =>
-                          FrameRec rs
-                        -> (forall f. Functor f => (a -> f a) -> Record rs -> f (Record rs))
-                        -> (forall f. Functor f => [(b -> f b) -> Record rs -> f (Record rs)])
-                        -> (forall f. Functor f => (b -> f b) -> Record rs -> f (Record rs))
-findMostInfomativeFeature frame targetFeature descriptiveFeatures = undefined
+-- Part way there:
+-- *Main Lib Frames Frames.Rec Data.Vinyl> type DescriptiveFeature = Record '[((:->) "SpamId" ((Int -> Frame Int) -> SpamOrHam -> Frame SpamOrHam)), ((:->) "SuspiciousWords" ((Bool -> Frame Bool) -> SpamOrHam -> Frame SpamOrHam)), ((:->) "UnknownSender" ((Bool -> Frame Bool) -> SpamOrHam -> Frame SpamOrHam)), ((:->) "Images" ((Bool -> Frame Bool) -> SpamOrHam -> Frame SpamOrHam)) ]
+--
+-- *Main Lib Frames Frames.Rec Data.Vinyl> rs :: DescriptiveFeature; rs = spamId &: suspiciousWords &: unknownSender &: images &: RNil
+-- *Main Lib Frames Frames.Rec Data.Vinyl>
+
+-- [SpamId :-> Int, SuspiciousWords :-> Bool, UnknownSender :-> Bool, Images :-> Bool, SpamClass :-> Text]
+findMostInfomativeFeature :: (RecVec rs) =>
+     (forall f. Functor f => (String -> f String) -> SpamOrHam -> f SpamOrHam)
+   -> Record '[
+     ((:->) "SpamId" ((Int -> Frame Int) -> SpamOrHam -> Frame SpamOrHam)),
+     ((:->) "SuspiciousWords" ((Bool -> Frame Bool) -> SpamOrHam -> Frame SpamOrHam)),
+     ((:->) "UnknownSender" ((Bool -> Frame Bool) -> SpamOrHam -> Frame SpamOrHam)),
+     ((:->) "Images" ((Bool -> Frame Bool) -> SpamOrHam -> Frame SpamOrHam))
+   ]
+   -> Frame SpamOrHam -> Double
+findMostInfomativeFeature tgtFeat descFeats frame =
+  F.maximum
+  $ recordToList
+  $ rmap (\colacc ->
+             (VF.Const
+             $ informationGain (frameEntropy tgtFeat frame) frame tgtFeat
+             $ groupByCol (getIdentity colacc) frame)) --type erasure, here???
+    descFeats
+
 
 -- Pass the grouped frame in instead of the descriptiveFeature, and then
 -- run through the list of descriptiveFeatures available while using the
