@@ -154,7 +154,7 @@ findMostInfomativeFeature tgtFeat descFeats frame =
 -- run through the list of descriptiveFeatures available while using the
 -- ST monad to keep track of the min as the algo progresses through
 -- the list.
-informationGain :: (Ord a, Ord b, RecVec rs) =>
+informationGain :: (Ord a, RecVec rs) =>
                 Double
              -> FrameRec rs
              -> (forall f. Functor f => (a -> f a) -> Record rs -> f (Record rs))
@@ -163,7 +163,7 @@ informationGain :: (Ord a, Ord b, RecVec rs) =>
 informationGain originalEntropy frame targetFeature groupedFrames =
   originalEntropy - remainingEntropy frame targetFeature groupedFrames
 
-remainingEntropy :: (Ord a, Ord b, RecVec rs) =>
+remainingEntropy :: (Ord a, RecVec rs) =>
                 FrameRec rs
              -> (forall f. Functor f => (a -> f a) -> Record rs -> f (Record rs))
              -> Map b (FrameRec rs)
