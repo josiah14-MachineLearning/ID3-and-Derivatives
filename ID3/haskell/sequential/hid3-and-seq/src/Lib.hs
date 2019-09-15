@@ -49,10 +49,11 @@ import Data.Foldable (foldl')
 import Data.Foldable as F
 import Data.List.Unique
 import Data.Map.Strict as M
+import qualified Data.Monoid.Inf as I
 import Data.Function (on)
 import qualified Control.Foldl as L
 import Data.Vinyl (rcast)
-import Data.Vinyl.Core (rmap, recordToList)
+import Data.Vinyl.Core (rfoldMap, recordToList)
 import Data.Vinyl.Functor (getIdentity)
 import qualified Data.Vinyl.Functor as VF
 import Data.Vinyl.Lens (RElem)
@@ -74,7 +75,8 @@ instance (Show a) => Show (Frame a) where
   show (Frame l f) = (show $ f 0)
                        ++ (if l>1 then "\n" ++ (show $ f 1) else "")
                          ++ (if l>2 then "\n..." else "")
-                           ++ "\nFrame with " ++ (show l) ++ if(l>1) then " rows." else " row."
+                           ++ (if l>3 then "\n..." else "")
+                             ++ "\nFrame with " ++ (show l) ++ if(l>1) then " rows." else " row."
 
 -- Data set from http://vincentarelbundock.github.io/Rdatasets/datasets.html
 tableTypes "SpamOrHam" "data/SpamAnalysis.csv"
@@ -139,15 +141,13 @@ findMostInfomativeFeature :: (RecVec rs) =>
      ((:->) "UnknownSender" ((Bool -> Frame Bool) -> SpamOrHam -> Frame SpamOrHam)),
      ((:->) "Images" ((Bool -> Frame Bool) -> SpamOrHam -> Frame SpamOrHam))
    ]
-   -> Frame SpamOrHam -> Double
+   -> Frame SpamOrHam -> I.PosInf Double
 findMostInfomativeFeature tgtFeat descFeats frame =
-  F.maximum
-  $ recordToList
-  $ rmap (\colacc ->
-             (VF.Const
+  rfoldMap (\colacc -> --undefined)
+             (I.Finite
              $ informationGain (frameEntropy tgtFeat frame) frame tgtFeat
-             $ groupByCol (getIdentity colacc) frame)) --type erasure, here???
-    descFeats
+             $ groupByCol (getIdentity colacc) frame) :: I.PosInf Double) --type erasure, here???
+  descFeats
 
 
 -- Pass the grouped frame in instead of the descriptiveFeature, and then

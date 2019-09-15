@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.2.
+-- This file has been generated from package.yaml by hpack version 0.31.1.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 18e9a41d8fbfe13cc2aedbc63903f8a251dbbd0932e2ceac681cfc179c196274
+-- hash: 12ddacf5c95b38aca3d9c8a318334f3b1a551fc8bf83c01b3b9750d7529b3e95
 
 name:           hid3-and-seq
 version:        0.1.0.0
@@ -44,6 +44,7 @@ library
     , hoogle
     , hspec >=2.0 && <3
     , microlens
+    , monoid-extras
     , mtl
     , optional-args <2
     , pipes
@@ -72,6 +73,7 @@ executable hid3-and-seq-exe
     , hoogle
     , hspec >=2.0 && <3
     , microlens
+    , monoid-extras
     , mtl
     , optional-args <2
     , pipes
@@ -100,6 +102,7 @@ test-suite hid3-and-seq-test
     , hoogle
     , hspec >=2.0 && <3
     , microlens
+    , monoid-extras
     , mtl
     , optional-args <2
     , pipes
