@@ -13,16 +13,7 @@ module Lib
     ( someFunc
     , entropy'
     , entropy
-    -- , loadRows
-    -- , streamRows
-    -- , ratio
-    -- , minIncome
-    -- , minMaxIncome
     , streamSpamOrHam
-    , selectSuspiciousWords
-    , selectUnknownSender
-    , onlySuspiciousWords
-    , uniqueSpam
     , frameEntropy
     , loadSpamOrHam
     , SpamOrHam
@@ -38,8 +29,6 @@ module Lib
     , spamClass
     , findMostInfomativeFeature
     , groupByCol
-    , groupByCol'
-    , groupByCol''
     ) where
 import Control.Foldl as Fl
 import Control.Monad.ST
@@ -78,11 +67,7 @@ instance (Show a) => Show (Frame a) where
                            ++ (if l>3 then "\n..." else "")
                              ++ "\nFrame with " ++ (show l) ++ if(l>1) then " rows." else " row."
 
--- Data set from http://vincentarelbundock.github.io/Rdatasets/datasets.html
 tableTypes "SpamOrHam" "data/SpamAnalysis.csv"
-
--- someFunc :: IO ()
--- someFunc = putStrLn $ show $ entropy' 15 [7, 4, 4] 2
 
 someFunc :: IO ()
 someFunc = do
@@ -97,56 +82,23 @@ streamSpamOrHam = readTableOpt spamOrHamParser "data/SpamAnalysis.csv"
 loadSpamOrHam :: IO (Frame SpamOrHam)
 loadSpamOrHam = inCoreAoS streamSpamOrHam
 
-selectSuspiciousWords :: IO (Frame Bool)
-selectSuspiciousWords = (\rows -> view suspiciousWords <$> rows) <$> loadSpamOrHam
-
-selectUnknownSender :: IO (Frame SpamOrHam)
-selectUnknownSender = splitFrameOn unknownSender True <$> loadSpamOrHam
-
-onlySuspiciousWords :: SpamOrHam -> Record '[SuspiciousWords]
-onlySuspiciousWords = rcast
-
-uniqueSpam :: IO ([(Text, Int)])
-uniqueSpam = do
-  soh <- loadSpamOrHam
-  spamClassCol <- (\soh' -> F.toList $ view spamClass <$> soh') <$> loadSpamOrHam
-  return $ count spamClassCol
-
-groupByCol'' :: (Eq a, Ord a, RecVec rs) =>
-             (forall f. Functor f => (a -> f a) -> Record rs -> f (Record rs))
-             -> FrameRec rs -> Map a (FrameRec rs)
-groupByCol'' feature frame = M.map toFrame $ F.foldl' groupBy M.empty frame
-  where groupBy m r = M.insertWith (\[new] old -> new:old) (view feature r) [r] m
-
-groupByCol' :: (Eq a, Ord a, RecVec rs) =>
-             (forall f. Functor f => (a -> f a) -> Record rs -> f (Record rs))
-             -> FrameRec rs -> Map a (FrameRec rs)
-groupByCol' feature frame =
-  runIdentity $ P.fold groupBy M.empty (M.map toFrame) (P.each frame)
-    where groupBy m r = M.insertWith (\[new] old -> new:old) (view feature r) [r] m
-
-
--- Part way there:
--- *Main Lib Frames Frames.Rec Data.Vinyl> type DescriptiveFeature = Record '[((:->) "SpamId" ((Int -> Frame Int) -> SpamOrHam -> Frame SpamOrHam)), ((:->) "SuspiciousWords" ((Bool -> Frame Bool) -> SpamOrHam -> Frame SpamOrHam)), ((:->) "UnknownSender" ((Bool -> Frame Bool) -> SpamOrHam -> Frame SpamOrHam)), ((:->) "Images" ((Bool -> Frame Bool) -> SpamOrHam -> Frame SpamOrHam)) ]
---
--- *Main Lib Frames Frames.Rec Data.Vinyl> rs :: DescriptiveFeature; rs = spamId &: suspiciousWords &: unknownSender &: images &: RNil
--- *Main Lib Frames Frames.Rec Data.Vinyl>
-
+-- First, let's solve this specifically for the SpamOrHam Frame, and then once that's solved, work on
+-- a generic solution.
 -- [SpamId :-> Int, SuspiciousWords :-> Bool, UnknownSender :-> Bool, Images :-> Bool, SpamClass :-> Text]
-findMostInfomativeFeature :: (RecVec rs) =>
+findMostInfomativeFeature ::
      (forall f. Functor f => (String -> f String) -> SpamOrHam -> f SpamOrHam)
    -> Record '[
-     ((:->) "SpamId" ((Int -> Frame Int) -> SpamOrHam -> Frame SpamOrHam)),
-     ((:->) "SuspiciousWords" ((Bool -> Frame Bool) -> SpamOrHam -> Frame SpamOrHam)),
-     ((:->) "UnknownSender" ((Bool -> Frame Bool) -> SpamOrHam -> Frame SpamOrHam)),
-     ((:->) "Images" ((Bool -> Frame Bool) -> SpamOrHam -> Frame SpamOrHam))
+     ((:->) "SpamId" (forall f. Functor f => (Int -> f Int) -> SpamOrHam -> f SpamOrHam)),
+     ((:->) "SuspiciousWords" (forall f. Functor f => (Bool -> f Bool) -> SpamOrHam -> f SpamOrHam)),
+     ((:->) "UnknownSender" (forall f. Functor f => (Bool -> f Bool) -> SpamOrHam -> f SpamOrHam)),
+     ((:->) "Images" (forall f. Functor f => (Bool -> f Bool) -> SpamOrHam -> f SpamOrHam))
    ]
-   -> Frame SpamOrHam -> I.PosInf Double
+   -> Frame SpamOrHam -> I.NegInf Double
 findMostInfomativeFeature tgtFeat descFeats frame =
   rfoldMap (\colacc -> --undefined)
              (I.Finite
              $ informationGain (frameEntropy tgtFeat frame) frame tgtFeat
-             $ groupByCol (getIdentity colacc) frame) :: I.PosInf Double) --type erasure, here???
+             $ groupByCol (getIdentity colacc) frame) :: I.NegInf Double) --type erasure, here???
   descFeats
 
 
@@ -186,27 +138,12 @@ groupByCol feature frame =
         M.insertWith (V.++) (view feature $ frameRow frame i) (V.singleton i) m
 
 -- example usage:
---   F.toList <$> splitFrameOn unknownSender True <$> loadSpamOrHam
--- => IO ([<rows where the UnknownSender column is True>])
-splitFrameOn :: (Eq a, RecVec rs) =>
-             (forall f. Functor f => (a -> f a) -> Record rs -> f (Record rs))
-             -> a -> FrameRec rs -> FrameRec rs
-splitFrameOn feature value = filterFrame (\r -> (view feature r) == value)
-
--- example usage:
 --     frameEntropy spamClass <$> loadSpamOrHam
 -- => IO (1.0)
 frameEntropy :: Ord a => Getting a s a -> Frame s -> Double
 frameEntropy targetFeature frame =
   entropy (frameLength frame) $ fmap snd $ count targetFeatureCol
     where targetFeatureCol = F.toList $ view targetFeature <$> frame
-
--- minMaxIncome :: IO (Maybe Int, Maybe Int)
--- minMaxIncome = (\rows -> L.fold (L.handles income minMax) rows) <$> loadRows
---   where minMax = (,) <$> L.minimum <*> L.maximum
-
--- ratio :: Record '[Income, Prestige] -> Double
--- ratio = runcurry' (\i p -> fromIntegral i / p)
 
 entropy' :: (Foldable f, Floating b) => Int -> f Int -> Int -> b
 entropy' totalElements itemFrequencies logarithmicBase =
