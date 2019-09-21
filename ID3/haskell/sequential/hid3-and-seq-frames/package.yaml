@@ -1,4 +1,4 @@
-name:                hid3-and-seq
+name:                hid3-and-seq-frames
 version:             0.1.0.0
 github:              "josiah14-MachineLearning/ID3-and-Derivatives/haskell/sequential/hid3-and-seq"
 license:             AGPL-3.0
