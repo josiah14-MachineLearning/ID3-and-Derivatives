@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x62bd010f
+# __coconut_hash__ = 0x14791ca2
 
 # Compiled with Coconut version 1.4.1 [Ernest Scribbler]
 
@@ -752,12 +752,12 @@ def entropy(total_records,  # type: int
      log_base=2  # type: int
     ):
 # type: (...) -> float
-    def item_entropy(freq):
-        prob = freq / total_records
-        return prob * (np.log(prob) / np.log(log_base))
-    item_entropy_v = np.vectorize(item_entropy)
+    def item_probability(freq):
+        return freq / total_records
+    item_probability_v = np.vectorize(item_probability)
 
-    return -item_entropy_v(value_frequencies).sum()
+    item_probs = item_probability_v(value_frequencies)
+    return -(item_probs * np.log(item_probs) / np.log(log_base)).sum()
 
 def frame_entropy(df,  # type: DataFrame
      target_feature  # type: str
@@ -767,6 +767,6 @@ def frame_entropy(df,  # type: DataFrame
 
     counts = map(lambda k: len(grouped_df.get_group(k).index), grouped_df.indices.keys())
 
-    return entropy(df.index.stop, np.array(list(counts)))
+    return entropy(len(df.index), np.array(list(counts)))
 
 (print)(frame_entropy(pd.DataFrame(spam_analysis_data), "SpamClass"))
