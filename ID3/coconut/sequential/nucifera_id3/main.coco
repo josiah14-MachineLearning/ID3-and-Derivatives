@@ -22,14 +22,16 @@ def entropy(
         prob * (np.log(prob) / np.log(log_base))
     item_entropy_v = np.vectorize(item_entropy)
 
-    -item_entropy(value_frequencies).sum()
+    -item_entropy_v(value_frequencies).sum()
 
 def frame_entropy(df: DataFrame, target_feature: str) -> float =
     grouped_df = df.groupby(target_feature)
+
     counts = map(
         (k) -> len(grouped_df.get_group(k).index),
         grouped_df.indices.keys()
     )
+
     np.array(list(counts)) |> entropy$(df.index.stop)
 
 frame_entropy(pd.DataFrame(spam_analysis_data), "SpamClass") |> print

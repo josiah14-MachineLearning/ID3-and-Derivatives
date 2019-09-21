@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x47d91ad0
+# __coconut_hash__ = 0x62bd010f
 
 # Compiled with Coconut version 1.4.1 [Ernest Scribbler]
 
@@ -149,29 +149,6 @@ _coconut_sentinel = _coconut.object()
 class MatchError(Exception):
     """Pattern-matching error. Has attributes .pattern and .value."""
     __slots__ = ("pattern", "value")
-class _coconut_tail_call(object):
-    __slots__ = ("func", "args", "kwargs")
-    def __init__(self, func, *args, **kwargs):
-        self.func, self.args, self.kwargs = func, args, kwargs
-_coconut_tco_func_dict = {}
-def _coconut_tco(func):
-    @_coconut.functools.wraps(func)
-    def tail_call_optimized_func(*args, **kwargs):
-        call_func = func
-        while True:
-            wkref = _coconut_tco_func_dict.get(_coconut.id(call_func))
-            if (wkref is not None and wkref() is call_func) or _coconut.isinstance(call_func, _coconut_base_pattern_func):
-                call_func = call_func._coconut_tco_func
-            result = call_func(*args, **kwargs)  # pass --no-tco to clean up your traceback
-            if not isinstance(result, _coconut_tail_call):
-                return result
-            call_func, args, kwargs = result.func, result.args, result.kwargs
-    tail_call_optimized_func._coconut_tco_func = func
-    tail_call_optimized_func.__module__ = _coconut.getattr(func, "__module__", None)
-    tail_call_optimized_func.__name__ = _coconut.getattr(func, "__name__", "<coconut tco function (pass --no-tco to remove)>")
-    tail_call_optimized_func.__qualname__ = _coconut.getattr(func, "__qualname__", tail_call_optimized_func.__name__)
-    _coconut_tco_func_dict[_coconut.id(tail_call_optimized_func)] = _coconut.weakref.ref(tail_call_optimized_func)
-    return tail_call_optimized_func
 def _coconut_igetitem(iterable, index):
     if isinstance(iterable, (_coconut_reversed, _coconut_map, _coconut.zip, _coconut_enumerate, _coconut_count, _coconut.abc.Sequence)):
         return iterable[index]
@@ -780,15 +757,16 @@ def entropy(total_records,  # type: int
         return prob * (np.log(prob) / np.log(log_base))
     item_entropy_v = np.vectorize(item_entropy)
 
-    return -item_entropy(value_frequencies).sum()
+    return -item_entropy_v(value_frequencies).sum()
 
-@_coconut_tco
 def frame_entropy(df,  # type: DataFrame
      target_feature  # type: str
     ):
 # type: (...) -> float
     grouped_df = df.groupby(target_feature)
+
     counts = map(lambda k: len(grouped_df.get_group(k).index), grouped_df.indices.keys())
-    return _coconut_tail_call(entropy, df.index.stop, np.array(list(counts)))
+
+    return entropy(df.index.stop, np.array(list(counts)))
 
 (print)(frame_entropy(pd.DataFrame(spam_analysis_data), "SpamClass"))
