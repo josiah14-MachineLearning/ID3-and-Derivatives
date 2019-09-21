@@ -53,7 +53,7 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - hid3-and-seq
+    - hid3-and-seq-frames
     - ghcid
     - hoogle
 
@@ -68,6 +68,6 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - hid3-and-seq
+    - hid3-and-seq-frames
     - hspec >= 2.0 && < 3
     - QuickCheck >= 2.0 && < 3
