@@ -4,17 +4,29 @@ import numpy as np
 from pandas import DataFrame
 from typing import List
 
-def entropyN(
+spam_analysis_data = {
+    'SpamId': [376,489,541,693,782,976],
+    'SuspiciousWords': [True,True,True,False,False,False],
+    'UnknownSender': [False,True,True,True,False,False],
+    'Images': [True,False,False,True,False,False],
+    'SpamClass': ["spam","spam","spam","ham","ham","ham"]
+}
+
+def entropy(
     total_records: int,
     value_frequencies: np.array,
     log_base: int = 2
 ) -> float =
     def item_entropy(freq) =
-      prob = freq / total_records
-      prob * (np.log(prob) / np.log(log_base))
-
+        prob = freq / total_records
+        prob * (np.log(prob) / np.log(log_base))
     item_entropy_v = np.vectorize(item_entropy)
 
     -item_entropy(value_frequencies).sum()
 
-entropyN(52, np.array([13, 13, 13, 13])) |> print
+def frame_entropy(df: DataFrame, target_feature: str) -> float =
+    grouped_df = df.groupby(target_feature)
+    counts = map((k) -> len(grouped_df.get_group(k)), grouped_df.indices.keys())
+    entropy(df.index.stop, np.array(list(counts)))
+
+frame_entropy(pd.DataFrame(spam_analysis_data), "SpamClass") |> print

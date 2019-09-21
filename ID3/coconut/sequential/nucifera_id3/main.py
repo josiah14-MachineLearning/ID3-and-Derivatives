@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xda4f023b
+# __coconut_hash__ = 0x62ecce19
 
 # Compiled with Coconut version 1.4.1 [Ernest Scribbler]
 
@@ -768,7 +768,9 @@ import numpy as np
 from pandas import DataFrame
 from typing import List
 
-def entropyN(total_records,  # type: int
+spam_analysis_data = {'SpamId': [376, 489, 541, 693, 782, 976], 'SuspiciousWords': [True, True, True, False, False, False], 'UnknownSender': [False, True, True, True, False, False], 'Images': [True, False, False, True, False, False], 'SpamClass': ["spam", "spam", "spam", "ham", "ham", "ham"]}
+
+def entropy(total_records,  # type: int
      value_frequencies,  # type: np.array
      log_base=2  # type: int
     ):
@@ -776,9 +778,17 @@ def entropyN(total_records,  # type: int
     def item_entropy(freq):
         prob = freq / total_records
         return prob * (np.log(prob) / np.log(log_base))
-
     item_entropy_v = np.vectorize(item_entropy)
 
     return -item_entropy(value_frequencies).sum()
 
-(print)(entropyN(52, np.array([13, 13, 13, 13])))
+@_coconut_tco
+def frame_entropy(df,  # type: DataFrame
+     target_feature  # type: str
+    ):
+# type: (...) -> float
+    grouped_df = df.groupby(target_feature)
+    counts = map(lambda k: len(grouped_df.get_group(k)), grouped_df.indices.keys())
+    return _coconut_tail_call(entropy, df.index.stop, np.array(list(counts)))
+
+(print)(frame_entropy(pd.DataFrame(spam_analysis_data), "SpamClass"))
