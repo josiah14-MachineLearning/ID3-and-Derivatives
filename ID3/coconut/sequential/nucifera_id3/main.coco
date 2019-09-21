@@ -1,0 +1,3 @@
+import coconut.convenience
+
+parallel_map(print, ["hello", "Josiah", "and", "Garrett"]) |> list

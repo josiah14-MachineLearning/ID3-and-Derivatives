@@ -1,0 +1,22 @@
+name: nucifera-id3
+channels:
+  - default
+  - conda-forge
+  - anaconda
+dependencies:
+  - python=3.7
+  - cython
+  - pip
+  - pandas>=0.25.1,<0.26
+  - jupyter
+  - ipython
+  - coconut[jupyter,watch,jobs,mypy,tests,docs]>=1.4.1,<2
+  - mypy
+  - pylint
+  - flake8
+  - mamba
+  - pip:
+    - expects
+    - hypothesis
+    - pygments-style-solarized
+    - cPyparsing>=2.4.0
