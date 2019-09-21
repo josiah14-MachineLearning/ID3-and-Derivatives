@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x62ecce19
+# __coconut_hash__ = 0x47d91ad0
 
 # Compiled with Coconut version 1.4.1 [Ernest Scribbler]
 
@@ -788,7 +788,7 @@ def frame_entropy(df,  # type: DataFrame
     ):
 # type: (...) -> float
     grouped_df = df.groupby(target_feature)
-    counts = map(lambda k: len(grouped_df.get_group(k)), grouped_df.indices.keys())
+    counts = map(lambda k: len(grouped_df.get_group(k).index), grouped_df.indices.keys())
     return _coconut_tail_call(entropy, df.index.stop, np.array(list(counts)))
 
 (print)(frame_entropy(pd.DataFrame(spam_analysis_data), "SpamClass"))

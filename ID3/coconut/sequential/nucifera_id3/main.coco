@@ -26,7 +26,10 @@ def entropy(
 
 def frame_entropy(df: DataFrame, target_feature: str) -> float =
     grouped_df = df.groupby(target_feature)
-    counts = map((k) -> len(grouped_df.get_group(k)), grouped_df.indices.keys())
-    entropy(df.index.stop, np.array(list(counts)))
+    counts = map(
+        (k) -> len(grouped_df.get_group(k).index),
+        grouped_df.indices.keys()
+    )
+    np.array(list(counts)) |> entropy$(df.index.stop)
 
 frame_entropy(pd.DataFrame(spam_analysis_data), "SpamClass") |> print
