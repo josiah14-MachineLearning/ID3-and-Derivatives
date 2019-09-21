@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x4b75411c
+# __coconut_hash__ = 0xda4f023b
 
 # Compiled with Coconut version 1.4.1 [Ernest Scribbler]
 
@@ -763,5 +763,22 @@ _coconut_MatchError, _coconut_count, _coconut_enumerate, _coconut_makedata, _coc
 # Compiled Coconut: -----------------------------------------------------------
 
 import coconut.convenience
+import pandas as pd
+import numpy as np
+from pandas import DataFrame
+from typing import List
 
-(list)(parallel_map(print, ["hello", "Josiah", "and", "Garrett"]))
+def entropyN(total_records,  # type: int
+     value_frequencies,  # type: np.array
+     log_base=2  # type: int
+    ):
+# type: (...) -> float
+    def item_entropy(freq):
+        prob = freq / total_records
+        return prob * (np.log(prob) / np.log(log_base))
+
+    item_entropy_v = np.vectorize(item_entropy)
+
+    return -item_entropy(value_frequencies).sum()
+
+(print)(entropyN(52, np.array([13, 13, 13, 13])))
