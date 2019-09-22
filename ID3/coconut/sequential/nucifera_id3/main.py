@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x76f94e55
+# __coconut_hash__ = 0x3d919495
 
 # Compiled with Coconut version 1.4.1 [Ernest Scribbler]
 
@@ -770,7 +770,7 @@ def frame_entropy(df,  # type: DataFrame
 
     counts = map(lambda k: len(grouped_df.get_group(k).index), grouped_df.indices.keys())
 
-    return entropy(len(df.index), np.array(list(counts)))
+    return entropy(len(df.index), (np.array)((list)(counts)))
 
 
 def remaining_entropy(original_df,  # type: DataFrame
@@ -785,7 +785,7 @@ def remaining_entropy(original_df,  # type: DataFrame
 # type: (...) -> float
         return (len(df.index) / len(original_df.index) * frame_entropy(df, target_feature))
 
-    return np.array(list(map(weighted_group_entropy, grouped_frames))).sum()
+    return ((np.array)((list)(map(weighted_group_entropy, grouped_frames)))).sum()
 
 
 spam_analysis_df = pd.DataFrame(spam_analysis_data).drop('SpamId', axis=1)

@@ -34,7 +34,7 @@ def frame_entropy(df: DataFrame, target_feature: str) -> float =
         grouped_df.indices.keys()
     )
 
-    np.array(list(counts)) |> entropy$(len(df.index))
+    counts |> list |> np.array |> entropy$(len(df.index))
 
 
 def remaining_entropy(
@@ -50,7 +50,7 @@ def remaining_entropy(
         * frame_entropy(df, target_feature)
     )
 
-    np.array(list(map(weighted_group_entropy, grouped_frames))).sum()
+    map(weighted_group_entropy, grouped_frames) |> list |> np.array |> .sum()
 
 
 spam_analysis_df = pd.DataFrame(spam_analysis_data).drop('SpamId', axis=1)
