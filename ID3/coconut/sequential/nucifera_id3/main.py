@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x9550606c
+# __coconut_hash__ = 0x661416da
 
 # Compiled with Coconut version 1.4.1 [Ernest Scribbler]
 
@@ -754,8 +754,7 @@ def entropy(total_records,  # type: int
      log_base=2  # type: int
     ):
 # type: (...) -> float
-    item_probability = np.vectorize(lambda freq: freq / total_records)
-    item_probs = item_probability(value_frequencies)
+    item_probs = value_frequencies / total_records
     return -(item_probs * np.log(item_probs) / np.log(log_base)).sum()
 
 
@@ -806,7 +805,7 @@ def find_most_informative_feature(target_feature,  # type: str
     ):
 # type: (...) -> (float, str, DataFrameGroupBy)
         next_df = calc_IG(next_descriptive_feature)
-        return acc_df if acc_df[0] > next_df[0] else next_df
+        return acc_df if acc_df[0] >= next_df[0] else next_df
 
     descriptive_features = (list)(df.drop(target_feature, axis=1).columns)
     descriptive_features[0] = calc_IG(descriptive_features[0])
@@ -814,4 +813,4 @@ def find_most_informative_feature(target_feature,  # type: str
 
 
 spam_analysis_df = pd.DataFrame(spam_analysis_data).drop('SpamId', axis=1)
-(print)((list)(find_most_informative_feature("SpamClass", spam_analysis_df)))
+(print)((find_most_informative_feature("SpamClass", spam_analysis_df))[_coconut.slice(1, None)])

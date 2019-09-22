@@ -19,8 +19,7 @@ def entropy(
     value_frequencies: np.array,
     log_base: int = 2
 ) -> float =
-    item_probability = np.vectorize((freq) -> freq / total_records)
-    item_probs = item_probability(value_frequencies)
+    item_probs = value_frequencies / total_records
     -(item_probs * np.log(item_probs) / np.log(log_base)).sum()
 
 
@@ -74,7 +73,7 @@ def find_most_informative_feature(
         next_descriptive_feature: str
     ) -> (float, str, DataFrameGroupBy) =
         next_df = calc_IG(next_descriptive_feature)
-        acc_df if acc_df[0] > next_df[0] else next_df
+        acc_df if acc_df[0] >= next_df[0] else next_df
 
     descriptive_features = df.drop(target_feature, axis=1).columns |> list
     descriptive_features[0] = calc_IG(descriptive_features[0])
@@ -82,4 +81,4 @@ def find_most_informative_feature(
 
 
 spam_analysis_df = pd.DataFrame(spam_analysis_data).drop('SpamId', axis=1)
-spam_analysis_df |> find_most_informative_feature$("SpamClass") |> list |> print
+spam_analysis_df |> find_most_informative_feature$("SpamClass") |> .[1:] |> print
