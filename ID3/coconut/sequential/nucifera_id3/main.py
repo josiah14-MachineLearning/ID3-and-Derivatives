@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x3d919495
+# __coconut_hash__ = 0x942d1847
 
 # Compiled with Coconut version 1.4.1 [Ernest Scribbler]
 
@@ -754,11 +754,9 @@ def entropy(total_records,  # type: int
      log_base=2  # type: int
     ):
 # type: (...) -> float
-    def item_probability(freq):
-        return freq / total_records
-    item_probability_v = np.vectorize(item_probability)
+    item_probability = np.vectorize(lambda freq: freq / total_records)
 
-    item_probs = item_probability_v(value_frequencies)
+    item_probs = item_probability(value_frequencies)
     return -(item_probs * np.log(item_probs) / np.log(log_base)).sum()
 
 
@@ -778,7 +776,7 @@ def remaining_entropy(original_df,  # type: DataFrame
      grouped_df  # type: DataFrameGroupBy
     ):
 # type: (...) -> float
-    grouped_frames = list(map(grouped_df.get_group, grouped_df.indices.keys()))
+    grouped_frames = (list)(map(grouped_df.get_group, grouped_df.indices.keys()))
 
     def weighted_group_entropy(df  # type: DataFrame
     ):
