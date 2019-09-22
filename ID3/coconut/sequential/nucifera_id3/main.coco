@@ -51,12 +51,21 @@ def remaining_entropy(
 
     map(weighted_group_entropy, grouped_frames) |> list |> np.array |> .sum()
 
+def information_gain(
+    target_feature: str,
+    original_entropy: float,
+    original_df: DataFrame,
+    grouped_df: DataFrameGroupBy
+) -> float =
+    original_entropy - remaining_entropy(original_df, target_feature, grouped_df)
+
 
 spam_analysis_df = pd.DataFrame(spam_analysis_data).drop('SpamId', axis=1)
 map(
-    (descriptive_feature) -> remaining_entropy(
-        spam_analysis_df,
+    (descriptive_feature) -> information_gain(
         "SpamClass",
+        frame_entropy(spam_analysis_df, "SpamClass"),
+        spam_analysis_df,
         spam_analysis_df.groupby(descriptive_feature)
     ),
     spam_analysis_df.drop('SpamClass', axis=1).columns

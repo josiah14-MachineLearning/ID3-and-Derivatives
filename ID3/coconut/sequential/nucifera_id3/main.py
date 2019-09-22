@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x942d1847
+# __coconut_hash__ = 0xea6e15fe
 
 # Compiled with Coconut version 1.4.1 [Ernest Scribbler]
 
@@ -785,6 +785,14 @@ def remaining_entropy(original_df,  # type: DataFrame
 
     return ((np.array)((list)(map(weighted_group_entropy, grouped_frames)))).sum()
 
+def information_gain(target_feature,  # type: str
+     original_entropy,  # type: float
+     original_df,  # type: DataFrame
+     grouped_df  # type: DataFrameGroupBy
+    ):
+# type: (...) -> float
+    return original_entropy - remaining_entropy(original_df, target_feature, grouped_df)
+
 
 spam_analysis_df = pd.DataFrame(spam_analysis_data).drop('SpamId', axis=1)
-(print)((list)(map(lambda descriptive_feature: remaining_entropy(spam_analysis_df, "SpamClass", spam_analysis_df.groupby(descriptive_feature)), spam_analysis_df.drop('SpamClass', axis=1).columns)))
+(print)((list)(map(lambda descriptive_feature: information_gain("SpamClass", frame_entropy(spam_analysis_df, "SpamClass"), spam_analysis_df, spam_analysis_df.groupby(descriptive_feature)), spam_analysis_df.drop('SpamClass', axis=1).columns)))
