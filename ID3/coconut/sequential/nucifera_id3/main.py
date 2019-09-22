@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x4fb750c
+# __coconut_hash__ = 0x9550606c
 
 # Compiled with Coconut version 1.4.1 [Ernest Scribbler]
 
@@ -790,5 +790,28 @@ def information_gain(target_feature,  # type: str
     return original_entropy - remaining_entropy(original_df, target_feature, grouped_df)
 
 
+def find_most_informative_feature(target_feature,  # type: str
+     df  # type: DataFrame
+    ):
+# type: (...) -> (float, str, DataFrameGroupBy)
+    original_entropy = frame_entropy(df, target_feature)
+    def calc_IG(descriptive_feature  # type: str
+    ):
+# type: (...) -> (float, str, DataFrameGroupBy)
+        grouped_df = df.groupby(descriptive_feature)
+        return (information_gain(target_feature, original_entropy, df, grouped_df), descriptive_feature, grouped_df)
+
+    def keep_greatest_information_gain(acc_df,  # type: (float, str, DataFrameGroupBy)
+     next_descriptive_feature  # type: str
+    ):
+# type: (...) -> (float, str, DataFrameGroupBy)
+        next_df = calc_IG(next_descriptive_feature)
+        return acc_df if acc_df[0] > next_df[0] else next_df
+
+    descriptive_features = (list)(df.drop(target_feature, axis=1).columns)
+    descriptive_features[0] = calc_IG(descriptive_features[0])
+    return reduce(keep_greatest_information_gain, descriptive_features)
+
+
 spam_analysis_df = pd.DataFrame(spam_analysis_data).drop('SpamId', axis=1)
-(print)((list)(map(lambda descriptive_feature: information_gain("SpamClass", frame_entropy(spam_analysis_df, "SpamClass"), spam_analysis_df, spam_analysis_df.groupby(descriptive_feature)), spam_analysis_df.drop('SpamClass', axis=1).columns)))
+(print)((list)(find_most_informative_feature("SpamClass", spam_analysis_df)))

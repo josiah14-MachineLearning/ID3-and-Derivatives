@@ -56,13 +56,30 @@ def information_gain(
     original_entropy - remaining_entropy(original_df, target_feature, grouped_df)
 
 
+def find_most_informative_feature(
+    target_feature: str,
+    df: DataFrame
+) -> (float, str, DataFrameGroupBy) =
+    original_entropy = frame_entropy(df, target_feature)
+    def calc_IG(descriptive_feature: str) -> (float, str, DataFrameGroupBy) =
+        grouped_df = df.groupby(descriptive_feature)
+        (
+            information_gain(target_feature, original_entropy, df, grouped_df),
+            descriptive_feature,
+            grouped_df
+        )
+
+    def keep_greatest_information_gain(
+        acc_df: (float, str, DataFrameGroupBy),
+        next_descriptive_feature: str
+    ) -> (float, str, DataFrameGroupBy) =
+        next_df = calc_IG(next_descriptive_feature)
+        acc_df if acc_df[0] > next_df[0] else next_df
+
+    descriptive_features = df.drop(target_feature, axis=1).columns |> list
+    descriptive_features[0] = calc_IG(descriptive_features[0])
+    reduce(keep_greatest_information_gain, descriptive_features)
+
+
 spam_analysis_df = pd.DataFrame(spam_analysis_data).drop('SpamId', axis=1)
-map(
-    (descriptive_feature) -> information_gain(
-        "SpamClass",
-        frame_entropy(spam_analysis_df, "SpamClass"),
-        spam_analysis_df,
-        spam_analysis_df.groupby(descriptive_feature)
-    ),
-    spam_analysis_df.drop('SpamClass', axis=1).columns
-) |> list |> print
+spam_analysis_df |> find_most_informative_feature$("SpamClass") |> list |> print
