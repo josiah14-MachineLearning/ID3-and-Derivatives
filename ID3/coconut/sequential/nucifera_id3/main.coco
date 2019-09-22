@@ -2,6 +2,7 @@ import coconut.convenience
 import pandas as pd
 import numpy as np
 from pandas import DataFrame
+from pandas.core.groupby.generic import DataFrameGroupBy
 from typing import List
 
 spam_analysis_data = {
@@ -11,6 +12,7 @@ spam_analysis_data = {
     'Images': [True,False,False,True,False,False],
     'SpamClass': ["spam","spam","spam","ham","ham","ham"]
 }
+
 
 def entropy(
     total_records: int,
@@ -23,6 +25,7 @@ def entropy(
     item_probs = item_probability_v(value_frequencies)
     -(item_probs * np.log(item_probs) / np.log(log_base)).sum()
 
+
 def frame_entropy(df: DataFrame, target_feature: str) -> float =
     grouped_df = df.groupby(target_feature)
 
@@ -33,4 +36,29 @@ def frame_entropy(df: DataFrame, target_feature: str) -> float =
 
     np.array(list(counts)) |> entropy$(len(df.index))
 
-frame_entropy(pd.DataFrame(spam_analysis_data), "SpamClass") |> print
+
+def remaining_entropy(
+    original_df: DataFrame,
+    target_feature: str,
+    grouped_df: DataFrameGroupBy
+) -> float =
+    grouped_frames = list(map(grouped_df.get_group, grouped_df.indices.keys()))
+
+    def weighted_group_entropy(df: DataFrame) -> float = (
+        len(df.index)
+        / len(original_df.index)
+        * frame_entropy(df, target_feature)
+    )
+
+    np.array(list(map(weighted_group_entropy, grouped_frames))).sum()
+
+
+spam_analysis_df = pd.DataFrame(spam_analysis_data).drop('SpamId', axis=1)
+map(
+    (descriptive_feature) -> remaining_entropy(
+        spam_analysis_df,
+        "SpamClass",
+        spam_analysis_df.groupby(descriptive_feature)
+    ),
+    spam_analysis_df.drop('SpamClass', axis=1).columns
+) |> list |> print

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x14791ca2
+# __coconut_hash__ = 0x76f94e55
 
 # Compiled with Coconut version 1.4.1 [Ernest Scribbler]
 
@@ -743,9 +743,11 @@ import coconut.convenience
 import pandas as pd
 import numpy as np
 from pandas import DataFrame
+from pandas.core.groupby.generic import DataFrameGroupBy
 from typing import List
 
 spam_analysis_data = {'SpamId': [376, 489, 541, 693, 782, 976], 'SuspiciousWords': [True, True, True, False, False, False], 'UnknownSender': [False, True, True, True, False, False], 'Images': [True, False, False, True, False, False], 'SpamClass': ["spam", "spam", "spam", "ham", "ham", "ham"]}
+
 
 def entropy(total_records,  # type: int
      value_frequencies,  # type: np.array
@@ -759,6 +761,7 @@ def entropy(total_records,  # type: int
     item_probs = item_probability_v(value_frequencies)
     return -(item_probs * np.log(item_probs) / np.log(log_base)).sum()
 
+
 def frame_entropy(df,  # type: DataFrame
      target_feature  # type: str
     ):
@@ -769,4 +772,21 @@ def frame_entropy(df,  # type: DataFrame
 
     return entropy(len(df.index), np.array(list(counts)))
 
-(print)(frame_entropy(pd.DataFrame(spam_analysis_data), "SpamClass"))
+
+def remaining_entropy(original_df,  # type: DataFrame
+     target_feature,  # type: str
+     grouped_df  # type: DataFrameGroupBy
+    ):
+# type: (...) -> float
+    grouped_frames = list(map(grouped_df.get_group, grouped_df.indices.keys()))
+
+    def weighted_group_entropy(df  # type: DataFrame
+    ):
+# type: (...) -> float
+        return (len(df.index) / len(original_df.index) * frame_entropy(df, target_feature))
+
+    return np.array(list(map(weighted_group_entropy, grouped_frames))).sum()
+
+
+spam_analysis_df = pd.DataFrame(spam_analysis_data).drop('SpamId', axis=1)
+(print)((list)(map(lambda descriptive_feature: remaining_entropy(spam_analysis_df, "SpamClass", spam_analysis_df.groupby(descriptive_feature)), spam_analysis_df.drop('SpamClass', axis=1).columns)))
