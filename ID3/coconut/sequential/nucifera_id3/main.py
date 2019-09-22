@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xea6e15fe
+# __coconut_hash__ = 0x4fb750c
 
 # Compiled with Coconut version 1.4.1 [Ernest Scribbler]
 
@@ -755,7 +755,6 @@ def entropy(total_records,  # type: int
     ):
 # type: (...) -> float
     item_probability = np.vectorize(lambda freq: freq / total_records)
-
     item_probs = item_probability(value_frequencies)
     return -(item_probs * np.log(item_probs) / np.log(log_base)).sum()
 
@@ -765,9 +764,7 @@ def frame_entropy(df,  # type: DataFrame
     ):
 # type: (...) -> float
     grouped_df = df.groupby(target_feature)
-
     counts = map(lambda k: len(grouped_df.get_group(k).index), grouped_df.indices.keys())
-
     return entropy(len(df.index), (np.array)((list)(counts)))
 
 
@@ -776,14 +773,13 @@ def remaining_entropy(original_df,  # type: DataFrame
      grouped_df  # type: DataFrameGroupBy
     ):
 # type: (...) -> float
-    grouped_frames = (list)(map(grouped_df.get_group, grouped_df.indices.keys()))
-
     def weighted_group_entropy(df  # type: DataFrame
     ):
 # type: (...) -> float
         return (len(df.index) / len(original_df.index) * frame_entropy(df, target_feature))
-
+    grouped_frames = (list)(map(grouped_df.get_group, grouped_df.indices.keys()))
     return ((np.array)((list)(map(weighted_group_entropy, grouped_frames)))).sum()
+
 
 def information_gain(target_feature,  # type: str
      original_entropy,  # type: float

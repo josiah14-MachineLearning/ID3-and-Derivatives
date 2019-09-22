@@ -20,19 +20,16 @@ def entropy(
     log_base: int = 2
 ) -> float =
     item_probability = np.vectorize((freq) -> freq / total_records)
-
     item_probs = item_probability(value_frequencies)
     -(item_probs * np.log(item_probs) / np.log(log_base)).sum()
 
 
 def frame_entropy(df: DataFrame, target_feature: str) -> float =
     grouped_df = df.groupby(target_feature)
-
     counts = map(
         (k) -> len(grouped_df.get_group(k).index),
         grouped_df.indices.keys()
     )
-
     counts |> list |> np.array |> entropy$(len(df.index))
 
 
@@ -41,15 +38,14 @@ def remaining_entropy(
     target_feature: str,
     grouped_df: DataFrameGroupBy
 ) -> float =
-    grouped_frames = map(grouped_df.get_group, grouped_df.indices.keys()) |> list
-
     def weighted_group_entropy(df: DataFrame) -> float = (
         len(df.index)
         / len(original_df.index)
         * frame_entropy(df, target_feature)
     )
-
+    grouped_frames = map(grouped_df.get_group, grouped_df.indices.keys()) |> list
     map(weighted_group_entropy, grouped_frames) |> list |> np.array |> .sum()
+
 
 def information_gain(
     target_feature: str,
