@@ -171,18 +171,18 @@ def id3(target_feature: str, df: DataFrame) -> Tuple[str, Dict[Any, Any]] =
             best_feature = find_most_informative_feature(target_feature, df)
             print(best_feature) # for debugging purposes...
             grouped_df: DataFrameGroupBy = best_feature[-1]
-            new_leaves = {
-                key: id3(target_feature, grouped_df.get_group(key))
-                for key in grouped_df.indices.keys()
-            }
-            # The below update is done in case unique values of the descriptive feature that
+            # The default 'otherwise' is done in case unique values of the descriptive feature that
             # got excluded through splitting the training set turn up in the real data.  In
             # this case, the current unsplit mode of the target_feature is assumed to be the most
             # accurate prediction.
-            new_leaves.update({'otherwise': df[target_feature].mode()})
+            new_leaves = {'otherwise': df[target_feature].mode()}
+            new_leaves.update({
+                key: id3(target_feature, grouped_df.get_group(key))
+                for key in grouped_df.indices.keys()
+            })
             new_node = (best_feature[0], new_leaves)
     new_node
 
 
 spam_analysis_df = pd.DataFrame(spam_analysis_data).drop('SpamId', axis=1)
-spam_analysis_df |> find_most_informative_feature$("SpamClass") |> print
+spam_analysis_df |> id3$('SpamClass') |> print
