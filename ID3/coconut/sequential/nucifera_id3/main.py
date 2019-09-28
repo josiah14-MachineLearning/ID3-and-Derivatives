@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x89703da6
+# __coconut_hash__ = 0x541a7e00
 
 # Compiled with Coconut version 1.4.1 [Ernest Scribbler]
 
@@ -775,6 +775,9 @@ from typing import Any
 spam_analysis_data = {'SpamId': [376, 489, 541, 693, 782, 976], 'SuspiciousWords': [True, True, True, False, False, False], 'UnknownSender': [False, True, True, True, False, False], 'Images': [True, False, False, True, False, False], 'SpamClass': ["spam", "spam", "spam", "ham", "ham", "ham"]}
 
 
+ecological_vegetation_data = {'Id': [1, 2, 3, 4, 5, 6, 7], 'Stream': [False, True, True, False, False, True, True], 'Slope': ['steep', 'moderate', 'steep', 'steep', 'flat', 'steep', 'steep'], 'Elevation': ['high', 'low', 'medium', 'medium', 'high', 'highest', 'high'], 'Vegetation': ['chaparal', 'riparian', 'riparian', 'chaparal', 'conifer', 'conifer', 'chaparal']}
+
+
 def entropy(total_records,  # type: int
      value_frequencies,  # type: np.array
      log_base=2  # type: int
@@ -944,3 +947,6 @@ def id3(target_feature,  # type: str
 
 spam_analysis_df = pd.DataFrame(spam_analysis_data).drop('SpamId', axis=1)
 (print)(id3('SpamClass', spam_analysis_df))
+
+ecological_vegetation_df = pd.DataFrame(ecological_vegetation_data).drop('Id', axis=1)
+(print)(id3('Vegetation', ecological_vegetation_df))
