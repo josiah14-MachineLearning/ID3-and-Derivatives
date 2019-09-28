@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x661416da
+# __coconut_hash__ = 0x393f8b89
 
 # Compiled with Coconut version 1.4.1 [Ernest Scribbler]
 
@@ -810,6 +810,12 @@ def find_most_informative_feature(target_feature,  # type: str
     descriptive_features = (list)(df.drop(target_feature, axis=1).columns)
     descriptive_features[0] = calc_IG(descriptive_features[0])
     return reduce(keep_greatest_information_gain, descriptive_features)
+
+
+def id3(target_feature,  # type: str
+     df  # type: DataFrame
+    ):
+    return None
 
 
 spam_analysis_df = pd.DataFrame(spam_analysis_data).drop('SpamId', axis=1)

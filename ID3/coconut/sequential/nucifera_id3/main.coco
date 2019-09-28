@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from pandas import DataFrame
 from pandas.core.groupby.generic import DataFrameGroupBy
-from typing import List
+from typing import List, Tuple, Dict, Any
 
 spam_analysis_data = {
     'SpamId': [376,489,541,693,782,976],
@@ -58,27 +58,131 @@ def information_gain(
 def find_most_informative_feature(
     target_feature: str,
     df: DataFrame
-) -> (float, str, DataFrameGroupBy) =
+) -> (str, float, DataFrameGroupBy) =
     original_entropy = frame_entropy(df, target_feature)
-    def calc_IG(descriptive_feature: str) -> (float, str, DataFrameGroupBy) =
+    def calc_IG(descriptive_feature: str) -> (str, float, DataFrameGroupBy) =
         grouped_df = df.groupby(descriptive_feature)
         (
-            information_gain(target_feature, original_entropy, df, grouped_df),
             descriptive_feature,
+            information_gain(target_feature, original_entropy, df, grouped_df),
             grouped_df
         )
 
     def keep_greatest_information_gain(
         acc_df: (float, str, DataFrameGroupBy),
         next_descriptive_feature: str
-    ) -> (float, str, DataFrameGroupBy) =
+    ) -> (str, float, DataFrameGroupBy) =
         next_df = calc_IG(next_descriptive_feature)
-        acc_df if acc_df[0] >= next_df[0] else next_df
+        acc_df if acc_df[1] >= next_df[1] else next_df
 
     descriptive_features = df.drop(target_feature, axis=1).columns |> list
     descriptive_features[0] = calc_IG(descriptive_features[0])
     reduce(keep_greatest_information_gain, descriptive_features)
 
 
+def id3(target_feature: str, df: DataFrame) -> Tuple[str, Dict[Any, Any]] =
+    """
+    High-level algorithm summary:
+
+    1. If all of the target_feature values in the training set DataFrame are the
+       same value, return that value as the new leaf.
+    2. If there is only one descriptive_feature left to split on, split by it and
+       make a new node which is a tuple where the first tuple value is the name
+       of the descriptive_feature column, and the second is a dictionary where
+       the keys are each unique value of the descriptive_feature column, and the
+       values are the mode of the target_feature of that grouping of the
+       descriptive_feature value.  Also add an `otherwise` key whose value is
+       the mode of the unsplit frame's target_feature column in case real-world
+       data contains unique values of the descriptive feature that got excluded
+       via former iterations of splitting the training set to build this model.
+    3. Otherwise, identify the descriptive_feature which yields the greatest
+       Information Gain and use it to split the training set DataFrame.  Make
+       a new node which is a tuple where the first tuple value is the name of
+       the descriptive_feature column, and the second is the a dictionary where
+       the keys are each unique value of the descriptive_feature column, and
+       the values are the result of running this id3 function recursively over
+       the DataFrame for the group at the key (which is the descriptive_feature
+       value).  As in step 2, also add an `otherwise` key whose value is
+       the mode of the unsplit frame's target_feature column in case real-world
+       data contains unique values of the descriptive feature that got excluded
+       via former iterations of splitting the training set to build this model.
+
+    :param target_feature: The name of the column this model should try to
+        predict.
+    :param df: The training set to use to build this decision tree model.
+
+    :return: A tuple which is a decision tree structure.  To explain the
+        mypy type signature, the Dict's first Any represents the type of
+        the descriptive_feature at that node, and the second Any could be either
+        another tree node, which would have signature Tuple[str, Dict[Any, Any]],
+        or it could be a leaf, which would just be a str value which is the value
+        predicted at the end of that traversal of the tree.
+
+        Here are some sample trees:
+        # simple Ham or Spam prediction example
+        ("SuspiciousWords", {True: 'spam', False: 'ham'})
+
+        # sample Ecological Vegetation decision tree
+        ("Elevation", {
+            "low": "riparian",
+            "highest": "conifer",
+            "medium": ("Stream, {
+                True: "riparian",
+                False: "chaparal"
+            }),
+            "high": ("Slope", {
+                "flat": "conifer",
+                "steep": "chaparal",
+                # below, "moderate" was eliminated through splitting, so the
+                # mode of the target_level of the frame unsplit by "Slope" is
+                # assumed via "otherwise" for any value other than "flat" or
+                # "steep", which covers "moderate" since it got excluded by
+                # the split.
+                "otherwise": "chaparal" 
+            })
+        })
+    """
+    unique_target_values = df[target_feature].unique()
+    if len(unique_target_values) is 1:
+        new_node = unique_target_values[0]  # a leaf
+    else:  # Can skip the rest if the previous if conditional was True
+        descriptive_features = df.columns |> list
+        descriptive_features.remove(target_feature)
+
+        if len(descriptive_features) is 1:
+            # Implies we're on the last descriptive feature.  Split the frame and make
+            # the next node at each split the mode of the target_feature column after the split.
+            last_descriptive_feature = descriptive_features[0]
+            grouped_df: DataFrameGroupBy = df.groupby(last_descriptive_feature)
+            new_leaves = {
+                key: grouped_df.get_group(key).[target_feature].mode()
+                for key in grouped_df.indices.keys()
+            }
+            # The below update is done in case unique values of the descriptive feature that
+            # got excluded through splitting the training set turn up in the real data.  In
+            # this case, the current unsplit mode of the target_feature is assumed to be the most
+            # accurate prediction.
+            new_leaves.update({'otherwise': df[target_feature].mode()})
+            new_node = (last_descriptive_feature, new_leaves)
+        else:
+            # Each node will have the column name, the mode at this level, and a list
+            # of tuples where the first tuple value is a column value and the second
+            # is the next Frame to run id3 against.
+            best_feature = find_most_informative_feature(target_feature, df)
+            print(best_feature) # for debugging purposes...
+            grouped_df: DataFrameGroupBy = best_feature[-1]
+            new_leaves = {
+                key: id3(target_feature, grouped_df.get_group(key))
+                for key in grouped_df.indices.keys()
+            }
+            # The below update is done in case unique values of the descriptive feature that
+            # got excluded through splitting the training set turn up in the real data.  In
+            # this case, the current unsplit mode of the target_feature is assumed to be the most
+            # accurate prediction.
+            new_leaves.update({'otherwise': df[target_feature].mode()})
+            new_node = (best_feature[0], new_leaves)
+    new_node
+
+
 spam_analysis_df = pd.DataFrame(spam_analysis_data).drop('SpamId', axis=1)
-spam_analysis_df |> find_most_informative_feature$("SpamClass") |> .[1:] |> print
+spam_analysis_df |> find_most_informative_feature$("SpamClass") |> print
