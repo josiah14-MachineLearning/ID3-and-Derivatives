@@ -155,7 +155,7 @@ def id3(target_feature: str, df: DataFrame) -> Tuple[str, Dict[Any, Any]] =
             last_descriptive_feature = descriptive_features[0]
             grouped_df: DataFrameGroupBy = df.groupby(last_descriptive_feature)
             new_leaves = {
-                key: grouped_df.get_group(key).[target_feature].mode()
+                key: grouped_df.get_group(key)[target_feature].mode()
                 for key in grouped_df.indices.keys()
             }
             # The below update is done in case unique values of the descriptive feature that

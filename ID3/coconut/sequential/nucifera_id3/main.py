@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x393f8b89
+# __coconut_hash__ = 0xc3aadf76
 
 # Compiled with Coconut version 1.4.1 [Ernest Scribbler]
 
@@ -149,6 +149,29 @@ _coconut_sentinel = _coconut.object()
 class MatchError(Exception):
     """Pattern-matching error. Has attributes .pattern and .value."""
     __slots__ = ("pattern", "value")
+class _coconut_tail_call(object):
+    __slots__ = ("func", "args", "kwargs")
+    def __init__(self, func, *args, **kwargs):
+        self.func, self.args, self.kwargs = func, args, kwargs
+_coconut_tco_func_dict = {}
+def _coconut_tco(func):
+    @_coconut.functools.wraps(func)
+    def tail_call_optimized_func(*args, **kwargs):
+        call_func = func
+        while True:
+            wkref = _coconut_tco_func_dict.get(_coconut.id(call_func))
+            if (wkref is not None and wkref() is call_func) or _coconut.isinstance(call_func, _coconut_base_pattern_func):
+                call_func = call_func._coconut_tco_func
+            result = call_func(*args, **kwargs)  # pass --no-tco to clean up your traceback
+            if not isinstance(result, _coconut_tail_call):
+                return result
+            call_func, args, kwargs = result.func, result.args, result.kwargs
+    tail_call_optimized_func._coconut_tco_func = func
+    tail_call_optimized_func.__module__ = _coconut.getattr(func, "__module__", None)
+    tail_call_optimized_func.__name__ = _coconut.getattr(func, "__name__", "<coconut tco function (pass --no-tco to remove)>")
+    tail_call_optimized_func.__qualname__ = _coconut.getattr(func, "__qualname__", tail_call_optimized_func.__name__)
+    _coconut_tco_func_dict[_coconut.id(tail_call_optimized_func)] = _coconut.weakref.ref(tail_call_optimized_func)
+    return tail_call_optimized_func
 def _coconut_igetitem(iterable, index):
     if isinstance(iterable, (_coconut_reversed, _coconut_map, _coconut.zip, _coconut_enumerate, _coconut_count, _coconut.abc.Sequence)):
         return iterable[index]
@@ -745,6 +768,9 @@ import numpy as np
 from pandas import DataFrame
 from pandas.core.groupby.generic import DataFrameGroupBy
 from typing import List
+from typing import Tuple
+from typing import Dict
+from typing import Any
 
 spam_analysis_data = {'SpamId': [376, 489, 541, 693, 782, 976], 'SuspiciousWords': [True, True, True, False, False, False], 'UnknownSender': [False, True, True, True, False, False], 'Images': [True, False, False, True, False, False], 'SpamClass': ["spam", "spam", "spam", "ham", "ham", "ham"]}
 
@@ -758,15 +784,17 @@ def entropy(total_records,  # type: int
     return -(item_probs * np.log(item_probs) / np.log(log_base)).sum()
 
 
+@_coconut_tco
 def frame_entropy(df,  # type: DataFrame
      target_feature  # type: str
     ):
 # type: (...) -> float
     grouped_df = df.groupby(target_feature)
     counts = map(lambda k: len(grouped_df.get_group(k).index), grouped_df.indices.keys())
-    return entropy(len(df.index), (np.array)((list)(counts)))
+    return _coconut_tail_call(entropy, len(df.index), (np.array)((list)(counts)))
 
 
+@_coconut_tco
 def remaining_entropy(original_df,  # type: DataFrame
      target_feature,  # type: str
      grouped_df  # type: DataFrameGroupBy
@@ -777,7 +805,7 @@ def remaining_entropy(original_df,  # type: DataFrame
 # type: (...) -> float
         return (len(df.index) / len(original_df.index) * frame_entropy(df, target_feature))
     grouped_frames = (list)(map(grouped_df.get_group, grouped_df.indices.keys()))
-    return ((np.array)((list)(map(weighted_group_entropy, grouped_frames)))).sum()
+    return _coconut_tail_call(((np.array)((list)(map(weighted_group_entropy, grouped_frames)))).sum)
 
 
 def information_gain(target_feature,  # type: str
@@ -789,34 +817,130 @@ def information_gain(target_feature,  # type: str
     return original_entropy - remaining_entropy(original_df, target_feature, grouped_df)
 
 
+@_coconut_tco
 def find_most_informative_feature(target_feature,  # type: str
      df  # type: DataFrame
     ):
-# type: (...) -> (float, str, DataFrameGroupBy)
+# type: (...) -> (str, float, DataFrameGroupBy)
     original_entropy = frame_entropy(df, target_feature)
     def calc_IG(descriptive_feature  # type: str
     ):
-# type: (...) -> (float, str, DataFrameGroupBy)
+# type: (...) -> (str, float, DataFrameGroupBy)
         grouped_df = df.groupby(descriptive_feature)
-        return (information_gain(target_feature, original_entropy, df, grouped_df), descriptive_feature, grouped_df)
+        return (descriptive_feature, information_gain(target_feature, original_entropy, df, grouped_df), grouped_df)
 
     def keep_greatest_information_gain(acc_df,  # type: (float, str, DataFrameGroupBy)
      next_descriptive_feature  # type: str
     ):
-# type: (...) -> (float, str, DataFrameGroupBy)
+# type: (...) -> (str, float, DataFrameGroupBy)
         next_df = calc_IG(next_descriptive_feature)
-        return acc_df if acc_df[0] >= next_df[0] else next_df
+        return acc_df if acc_df[1] >= next_df[1] else next_df
 
     descriptive_features = (list)(df.drop(target_feature, axis=1).columns)
     descriptive_features[0] = calc_IG(descriptive_features[0])
-    return reduce(keep_greatest_information_gain, descriptive_features)
+    return _coconut_tail_call(reduce, keep_greatest_information_gain, descriptive_features)
 
 
 def id3(target_feature,  # type: str
      df  # type: DataFrame
     ):
-    return None
+# type: (...) -> Tuple[str, Dict[Any, Any]]
+    """
+    High-level algorithm summary:
+
+    1. If all of the target_feature values in the training set DataFrame are the
+       same value, return that value as the new leaf.
+    2. If there is only one descriptive_feature left to split on, split by it and
+       make a new node which is a tuple where the first tuple value is the name
+       of the descriptive_feature column, and the second is a dictionary where
+       the keys are each unique value of the descriptive_feature column, and the
+       values are the mode of the target_feature of that grouping of the
+       descriptive_feature value.  Also add an `otherwise` key whose value is
+       the mode of the unsplit frame's target_feature column in case real-world
+       data contains unique values of the descriptive feature that got excluded
+       via former iterations of splitting the training set to build this model.
+    3. Otherwise, identify the descriptive_feature which yields the greatest
+       Information Gain and use it to split the training set DataFrame.  Make
+       a new node which is a tuple where the first tuple value is the name of
+       the descriptive_feature column, and the second is the a dictionary where
+       the keys are each unique value of the descriptive_feature column, and
+       the values are the result of running this id3 function recursively over
+       the DataFrame for the group at the key (which is the descriptive_feature
+       value).  As in step 2, also add an `otherwise` key whose value is
+       the mode of the unsplit frame's target_feature column in case real-world
+       data contains unique values of the descriptive feature that got excluded
+       via former iterations of splitting the training set to build this model.
+
+    :param target_feature: The name of the column this model should try to
+        predict.
+    :param df: The training set to use to build this decision tree model.
+
+    :return: A tuple which is a decision tree structure.  To explain the
+        mypy type signature, the Dict's first Any represents the type of
+        the descriptive_feature at that node, and the second Any could be either
+        another tree node, which would have signature Tuple[str, Dict[Any, Any]],
+        or it could be a leaf, which would just be a str value which is the value
+        predicted at the end of that traversal of the tree.
+
+        Here are some sample trees:
+        # simple Ham or Spam prediction example
+        ("SuspiciousWords", {True: 'spam', False: 'ham'})
+
+        # sample Ecological Vegetation decision tree
+        ("Elevation", {
+            "low": "riparian",
+            "highest": "conifer",
+            "medium": ("Stream, {
+                True: "riparian",
+                False: "chaparal"
+            }),
+            "high": ("Slope", {
+                "flat": "conifer",
+                "steep": "chaparal",
+                # below, "moderate" was eliminated through splitting, so the
+                # mode of the target_level of the frame unsplit by "Slope" is
+                # assumed via "otherwise" for any value other than "flat" or
+                # "steep", which covers "moderate" since it got excluded by
+                # the split.
+                "otherwise": "chaparal" 
+            })
+        })
+    """
+    unique_target_values = df[target_feature].unique()
+    if len(unique_target_values) is 1:
+        new_node = unique_target_values[0]  # a leaf
+    else:  # Can skip the rest if the previous if conditional was True
+        descriptive_features = (list)(df.columns)
+        descriptive_features.remove(target_feature)
+
+        if len(descriptive_features) is 1:
+# Implies we're on the last descriptive feature.  Split the frame and make
+# the next node at each split the mode of the target_feature column after the split.
+            last_descriptive_feature = descriptive_features[0]
+            grouped_df = df.groupby(last_descriptive_feature)  # type: DataFrameGroupBy
+            new_leaves = dict(((key), (grouped_df.get_group(key)[target_feature].mode())) for key in grouped_df.indices.keys())
+# The below update is done in case unique values of the descriptive feature that
+# got excluded through splitting the training set turn up in the real data.  In
+# this case, the current unsplit mode of the target_feature is assumed to be the most
+# accurate prediction.
+            new_leaves.update({'otherwise': df[target_feature].mode()})
+            new_node = (last_descriptive_feature, new_leaves)
+        else:
+# Each node will have the column name, the mode at this level, and a list
+# of tuples where the first tuple value is a column value and the second
+# is the next Frame to run id3 against.
+            best_feature = find_most_informative_feature(target_feature, df)
+            print(best_feature)  # for debugging purposes...
+            grouped_df = best_feature[-1]  # type: DataFrameGroupBy
+            new_leaves = dict(((key), (id3(target_feature, grouped_df.get_group(key)))) for key in grouped_df.indices.keys())
+# The below update is done in case unique values of the descriptive feature that
+# got excluded through splitting the training set turn up in the real data.  In
+# this case, the current unsplit mode of the target_feature is assumed to be the most
+# accurate prediction.
+            new_leaves.update({'otherwise': df[target_feature].mode()})
+            new_node = (best_feature[0], new_leaves)
+    return new_node
 
 
 spam_analysis_df = pd.DataFrame(spam_analysis_data).drop('SpamId', axis=1)
-(print)((find_most_informative_feature("SpamClass", spam_analysis_df))[_coconut.slice(1, None)])
+(print)(find_most_informative_feature("SpamClass", spam_analysis_df))
