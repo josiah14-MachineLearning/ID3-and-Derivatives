@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x541a7e00
+# __coconut_hash__ = 0x7ca5d23b
 
 # Compiled with Coconut version 1.4.1 [Ernest Scribbler]
 
@@ -910,13 +910,13 @@ def id3(target_feature,  # type: str
         })
     """
     unique_target_values = df[target_feature].unique()
-    if len(unique_target_values) is 1:
+    if len(unique_target_values) == 1:
         new_node = unique_target_values[0]  # a leaf
     else:  # Can skip the rest if the previous if conditional was True
         descriptive_features = (list)(df.columns)
         descriptive_features.remove(target_feature)
 
-        if len(descriptive_features) is 1:
+        if len(descriptive_features) == 1:
 # Implies we're on the last descriptive feature.  Split the frame and make
 # the next node at each split the mode of the target_feature column after the split.
             last_descriptive_feature = descriptive_features[0]
