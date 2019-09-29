@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x7ca5d23b
+# __coconut_hash__ = 0xf395a6ce
 
 # Compiled with Coconut version 1.4.1 [Ernest Scribbler]
 
@@ -766,6 +766,7 @@ import coconut.convenience
 import pandas as pd
 import numpy as np
 from pandas import DataFrame
+from pandas import Series
 from pandas.core.groupby.generic import DataFrameGroupBy
 from typing import List
 from typing import Tuple
@@ -820,6 +821,7 @@ def information_gain(target_feature,  # type: str
     return original_entropy - remaining_entropy(original_df, target_feature, grouped_df)
 
 
+# Change this function to return a data object.
 @_coconut_tco
 def find_most_informative_feature(target_feature,  # type: str
      df  # type: DataFrame
@@ -916,7 +918,7 @@ def id3(target_feature,  # type: str
         descriptive_features = (list)(df.columns)
         descriptive_features.remove(target_feature)
 
-        if len(descriptive_features) == 1:
+        if len(descriptive_features) == 1:  # TODO: pull this check into find_most_informative_feature.
 # Implies we're on the last descriptive feature.  Split the frame and make
 # the next node at each split the mode of the target_feature column after the split.
             last_descriptive_feature = descriptive_features[0]
@@ -945,8 +947,56 @@ def id3(target_feature,  # type: str
     return new_node
 
 
+# def run_dtree_model(dtree: tuple, row: Series) -> Series =
+
+
+
+# def run_dtree_predictions(dtree: tuple) -> Series:
+#     @udf(AnyType())
+#     def make_prediction(row):
+#         # TODO use dtree to add prediction to row and return new row
+#         # row.append(prediction)
+#         # return row (something like that)
+#     return make_prediction
+# df["predicted_vegetation"] = df.apply(run_dtree_predictions(dtree_model))  # not exactly correct, but close
+# df.apply(lambda r: pd.concat([r, pd.Series(["happy"])]), axis=1) 
+
+# df.withColumn("Vegetation", run_dtree_predictions(dtree_model)(row))
+
+
+
+# @udf(StringType())
+# def run_dtree(target_feature: str, df: DataFrame):
+#     val0 = df['Elevation']
+#     if val0 == "low":
+#         return "riparian"
+#     elif val0 == "highest":
+#         return "conifer"
+#     elif val0 == "medium": 
+#         val1 = df["Stream"]
+#         if val1:
+#             return "riparian"
+#         else:
+#             return "chaparal"
+
+
+# def run_model():
+#     pass
+
+
 spam_analysis_df = pd.DataFrame(spam_analysis_data).drop('SpamId', axis=1)
 (print)(id3('SpamClass', spam_analysis_df))
 
 ecological_vegetation_df = pd.DataFrame(ecological_vegetation_data).drop('Id', axis=1)
 (print)(id3('Vegetation', ecological_vegetation_df))
+
+print()
+print('----------------------------------------------------------------------')
+print()
+acute_inflammations_df = pd.read_csv('../../../datasets/acute_diagnoses/diagnosis.data', sep='\t', lineterminator='\n', header=None, encoding='utf-8')
+acute_inflammations_df[7] = acute_inflammations_df[7].str.strip('\r')
+acute_inflammations_df = acute_inflammations_df.rename(columns={0: 'Temperature', 1: 'Nausea', 2: 'LumbarPain', 3: 'UrinePushing', 4: 'MicturationPains', 5: 'UrethraB', 6: 'BladderInflammation', 7: 'RenalPelvisNephritis'})
+acute_inflammations_id3_df = acute_inflammations_df.drop('Temperature', axis=1)
+acute_inflammations_id3_predict_bladder_inflammation_df = (acute_inflammations_id3_df.drop('RenalPelvisNephritis', axis=1))
+
+((print)(id3('BladderInflammation', acute_inflammations_id3_predict_bladder_inflammation_df)))
