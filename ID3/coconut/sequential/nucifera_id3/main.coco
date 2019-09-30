@@ -51,8 +51,8 @@ def remaining_entropy(
         / len(original_df.index)
         * frame_entropy(df, target_feature)
     )
-    grouped_frames = map(grouped_df.get_group, grouped_df.indices.keys()) |> list
-    map(weighted_group_entropy, grouped_frames) |> list |> np.array |> .sum()
+    grouped_frames = map(grouped_df.get_group, grouped_df.indices.keys())
+    grouped_frames |> map$(weighted_group_entropy) |> list |> np.array |> .sum()
 
 
 def information_gain(
@@ -195,40 +195,7 @@ def id3(target_feature: str, df: DataFrame) -> Tuple[str, Dict[Any, Any]] =
 
 
 # def run_dtree_model(dtree: tuple, row: Series) -> Series =
-    
-    
-
-# def run_dtree_predictions(dtree: tuple) -> Series:
-#     @udf(AnyType())
-#     def make_prediction(row):
-#         # TODO use dtree to add prediction to row and return new row
-#         # row.append(prediction)
-#         # return row (something like that)
-#     return make_prediction
-# df["predicted_vegetation"] = df.apply(run_dtree_predictions(dtree_model))  # not exactly correct, but close
-# df.apply(lambda r: pd.concat([r, pd.Series(["happy"])]), axis=1) 
-
-# df.withColumn("Vegetation", run_dtree_predictions(dtree_model)(row))
-
-
-
-# @udf(StringType())
-# def run_dtree(target_feature: str, df: DataFrame):
-#     val0 = df['Elevation']
-#     if val0 == "low":
-#         return "riparian"
-#     elif val0 == "highest":
-#         return "conifer"
-#     elif val0 == "medium": 
-#         val1 = df["Stream"]
-#         if val1:
-#             return "riparian"
-#         else:
-#             return "chaparal"
-
-
-# def run_model():
-#     pass
+    # df.apply(lambda r: pd.concat([r, pd.Series(["happy"])]), axis=1) 
 
 
 spam_analysis_df = pd.DataFrame(spam_analysis_data).drop('SpamId', axis=1)
@@ -267,5 +234,14 @@ acute_inflammations_id3_predict_bladder_inflammation_df = (
 (
     acute_inflammations_id3_predict_bladder_inflammation_df 
     |> id3$('BladderInflammation') 
+    |> print
+)
+
+acute_inflammations_id3_predict_nephritis_df = acute_inflammations_id3_df.drop(
+    'BladderInflammation', axis=1
+)
+(
+    acute_inflammations_id3_predict_nephritis_df 
+    |> id3$('RenalPelvisNephritis') 
     |> print
 )

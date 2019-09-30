@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xf395a6ce
+# __coconut_hash__ = 0xa28fe6e2
 
 # Compiled with Coconut version 1.4.1 [Ernest Scribbler]
 
@@ -808,7 +808,7 @@ def remaining_entropy(original_df,  # type: DataFrame
     ):
 # type: (...) -> float
         return (len(df.index) / len(original_df.index) * frame_entropy(df, target_feature))
-    grouped_frames = (list)(map(grouped_df.get_group, grouped_df.indices.keys()))
+    grouped_frames = map(grouped_df.get_group, grouped_df.indices.keys())
     return _coconut_tail_call(((np.array)((list)(map(weighted_group_entropy, grouped_frames)))).sum)
 
 
@@ -948,40 +948,7 @@ def id3(target_feature,  # type: str
 
 
 # def run_dtree_model(dtree: tuple, row: Series) -> Series =
-
-
-
-# def run_dtree_predictions(dtree: tuple) -> Series:
-#     @udf(AnyType())
-#     def make_prediction(row):
-#         # TODO use dtree to add prediction to row and return new row
-#         # row.append(prediction)
-#         # return row (something like that)
-#     return make_prediction
-# df["predicted_vegetation"] = df.apply(run_dtree_predictions(dtree_model))  # not exactly correct, but close
 # df.apply(lambda r: pd.concat([r, pd.Series(["happy"])]), axis=1) 
-
-# df.withColumn("Vegetation", run_dtree_predictions(dtree_model)(row))
-
-
-
-# @udf(StringType())
-# def run_dtree(target_feature: str, df: DataFrame):
-#     val0 = df['Elevation']
-#     if val0 == "low":
-#         return "riparian"
-#     elif val0 == "highest":
-#         return "conifer"
-#     elif val0 == "medium": 
-#         val1 = df["Stream"]
-#         if val1:
-#             return "riparian"
-#         else:
-#             return "chaparal"
-
-
-# def run_model():
-#     pass
 
 
 spam_analysis_df = pd.DataFrame(spam_analysis_data).drop('SpamId', axis=1)
@@ -993,10 +960,14 @@ ecological_vegetation_df = pd.DataFrame(ecological_vegetation_data).drop('Id', a
 print()
 print('----------------------------------------------------------------------')
 print()
+# The following dataset comes from https://archive.ics.uci.edu/ml/datasets/Acute+Inflammations
 acute_inflammations_df = pd.read_csv('../../../datasets/acute_diagnoses/diagnosis.data', sep='\t', lineterminator='\n', header=None, encoding='utf-8')
 acute_inflammations_df[7] = acute_inflammations_df[7].str.strip('\r')
-acute_inflammations_df = acute_inflammations_df.rename(columns={0: 'Temperature', 1: 'Nausea', 2: 'LumbarPain', 3: 'UrinePushing', 4: 'MicturationPains', 5: 'UrethraB', 6: 'BladderInflammation', 7: 'RenalPelvisNephritis'})
+acute_inflammations_df = acute_inflammations_df.rename(columns={0: 'Temperature', 1: 'Nausea', 2: 'LumbarPain', 3: 'UrinePushing', 4: 'MicturationPains', 5: 'UrethraBurning', 6: 'BladderInflammation', 7: 'RenalPelvisNephritis'})
 acute_inflammations_id3_df = acute_inflammations_df.drop('Temperature', axis=1)
 acute_inflammations_id3_predict_bladder_inflammation_df = (acute_inflammations_id3_df.drop('RenalPelvisNephritis', axis=1))
 
 ((print)(id3('BladderInflammation', acute_inflammations_id3_predict_bladder_inflammation_df)))
+
+acute_inflammations_id3_predict_nephritis_df = acute_inflammations_id3_df.drop('BladderInflammation', axis=1)
+((print)(id3('RenalPelvisNephritis', acute_inflammations_id3_predict_nephritis_df)))
