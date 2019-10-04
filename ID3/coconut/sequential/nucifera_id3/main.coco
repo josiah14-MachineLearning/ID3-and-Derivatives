@@ -214,10 +214,10 @@ def run_dtree_model(dtree: Tuple[str, Dict[Any, Any]], row: Series) -> Series =
         return_val = (
             run_dtree_model(prediction, row) 
             if isinstance(prediction, tuple) 
-            else pd.concat([row, Series([prediction])])
+            else row.append(Series([prediction]))
         )
     else:
-        return_val = pd.concat([row, Series([dtree])])
+        return_val = row.append(Series([dtree]))
     return_val
 
 

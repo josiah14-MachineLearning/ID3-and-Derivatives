@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xd4a19f48
+# __coconut_hash__ = 0xf1c50a91
 
 # Compiled with Coconut version 1.4.1 [Ernest Scribbler]
 
@@ -963,9 +963,9 @@ def run_dtree_model(dtree,  # type: Tuple[str, Dict[Any, Any]]
     if isinstance(dtree, tuple):
         feature, branch_dict = dtree
         prediction = (branch_dict[row[feature]] if feature in row else branch_dict['otherwise'])
-        return_val = (run_dtree_model(prediction, row) if isinstance(prediction, tuple) else pd.concat([row, Series([prediction])]))
+        return_val = (run_dtree_model(prediction, row) if isinstance(prediction, tuple) else row.append(Series([prediction])))
     else:
-        return_val = pd.concat([row, Series([dtree])])
+        return_val = row.append(Series([dtree]))
     return return_val
 
 
