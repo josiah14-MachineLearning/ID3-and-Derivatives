@@ -194,15 +194,56 @@ def id3(target_feature: str, df: DataFrame) -> Tuple[str, Dict[Any, Any]] =
     new_node
 
 
-# def run_dtree_model(dtree: tuple, row: Series) -> Series =
-    # df.apply(lambda r: pd.concat([r, pd.Series(["happy"])]), axis=1) 
+def run_dtree_model(dtree: Tuple[str, Dict[Any, Any]], row: Series) -> Series =
+    """
+    if there is a 50/50 even split on the target feature and this leads to a leaf, both
+    (or all in the case of a 3-way 33.33/33.33/33.33 split, and so on for 4, 5, etc
+    prediction values) will be returned. No matter the case, the predictions are always
+    returned as a pandas.Series, so you'll have a column of Series objects after applying
+    this model **NOTE** Except that during testing, it turns out
+    that Pandas knows how to infer that the value inside the Series
+    instance should be unwrapped into its raw type (such as int or str)
+    """
+    if isinstance(dtree, tuple):
+        feature, branch_dict = dtree
+        prediction = (
+            branch_dict[row[feature]] 
+            if feature in row 
+            else branch_dict['otherwise']
+        )
+        return_val = (
+            run_dtree_model(prediction, row) 
+            if isinstance(prediction, tuple) 
+            else pd.concat([row, Series([prediction])])
+        )
+    else:
+        return_val = pd.concat([row, Series([dtree])])
+    return_val
+
+
+################################################################################
+# Below, I prove that the model predicts back the same target values for each
+# row of the training datasets.
+################################################################################
 
 
 spam_analysis_df = pd.DataFrame(spam_analysis_data).drop('SpamId', axis=1)
-spam_analysis_df |> id3$('SpamClass') |> print
+spam_prediction_model = spam_analysis_df |> id3$('SpamClass')
+print()
+spam_prediction_model |> print
+print()
+run_dtree_model$(spam_prediction_model) |> spam_analysis_df.apply$(axis=1) |> print
+
+print()
+print('----------------------------------------------------------------------')
+print()
 
 ecological_vegetation_df = pd.DataFrame(ecological_vegetation_data).drop('Id', axis=1)
-ecological_vegetation_df |> id3$('Vegetation') |> print
+eco_veg_model = ecological_vegetation_df |> id3$('Vegetation')
+print()
+eco_veg_model |> print
+print()
+run_dtree_model$(eco_veg_model) |> ecological_vegetation_df.apply$(axis=1) |> print
 
 print()
 print('----------------------------------------------------------------------')
@@ -231,17 +272,35 @@ acute_inflammations_id3_predict_bladder_inflammation_df = (
     acute_inflammations_id3_df.drop('RenalPelvisNephritis', axis=1)
 )
 
-(
+bladder_inflammations_model = (
     acute_inflammations_id3_predict_bladder_inflammation_df 
     |> id3$('BladderInflammation') 
+)
+print()
+bladder_inflammations_model |> print
+print()
+(
+    run_dtree_model$(bladder_inflammations_model) 
+    |> acute_inflammations_id3_predict_bladder_inflammation_df.apply$(axis=1)
     |> print
 )
+
+print()
+print('----------------------------------------------------------------------')
+print()
 
 acute_inflammations_id3_predict_nephritis_df = acute_inflammations_id3_df.drop(
     'BladderInflammation', axis=1
 )
-(
+nephritis_model = (
     acute_inflammations_id3_predict_nephritis_df 
     |> id3$('RenalPelvisNephritis') 
+)
+print()
+nephritis_model |> print
+print()
+(
+    run_dtree_model$(nephritis_model) 
+    |> acute_inflammations_id3_predict_nephritis_df.apply$(axis=1)
     |> print
 )
