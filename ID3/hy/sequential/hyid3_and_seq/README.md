@@ -1,7 +1,6 @@
 # Creating a Python Environment with Hy and Jupyter Integration
 
 1.
-
     ```bash
     conda create -n hyid3-and-seq
     conda activate hyid3-and-seq
