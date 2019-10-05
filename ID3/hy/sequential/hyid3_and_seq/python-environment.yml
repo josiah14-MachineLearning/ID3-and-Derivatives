@@ -1,0 +1,22 @@
+name: hyid3-and-seq
+channels:
+  - defaults
+  - conda-forge
+  - auto
+  - anaconda
+  - gwerbin
+  - chubb-gregory_werbin
+dependencies:
+  - python==3.7
+  - appdirs==1.4.3
+  - astor==0.7.1
+  - calysto-hy==0.1.1
+  - funcparserlib==0.3.6
+  - metakernel==0.24.3
+  - rply==0.7.7
+  - toolz==0.10.0
+  - pip:
+    - hy==0.17.0
+    - jedhy==1
+prefix: /home/josiah/miniconda3/envs/hyid3-and-seq
+
