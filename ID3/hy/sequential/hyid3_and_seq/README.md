@@ -2,7 +2,7 @@
 
 1.
     ```bash
-    conda create -n hyid3-and-seq
+    conda create -n hyid3-and-seq python=3.7
     conda activate hyid3-and-seq
     ```
 
