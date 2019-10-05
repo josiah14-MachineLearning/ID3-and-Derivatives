@@ -22,8 +22,8 @@
 
 (print ecological_vegetation_data)
 
-(defn entropy [total-records value-frequencies &optional [log-base 2]]
-    (setv item-probs (/ value-frequencies total-records))
-    (- (.sum (/ (* item-probs (np.log item-probs)) (np.log log-base)))))
+(defn entropy [total_records value_frequencies &optional [log_base 2]]
+    (setv item_probs (/ value_frequencies total_records))
+    (- (.sum (/ (* item_probs (np.log item_probs)) (np.log log_base)))))
 
 (print (entropy 6 (np.array [3 3])))

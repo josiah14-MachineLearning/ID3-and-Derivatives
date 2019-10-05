@@ -1,0 +1,21 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+ipython = "*"
+jupyter = "*"
+jupyterlab = "*"
+metakernel = "*"
+ipyparallel = "*"
+0-17-0 = {git = "https://github.com/hylang/hy.git"}
+1-1-0 = {git = "https://github.com/Karrq/calysto_hy.git"}
+0-1-1 = {git = "https://github.com/Karrq/calysto_hy.git"}
+pandas = "*"
+pygments-style-solarized = "*"
+
+[requires]
+python_version = "3.7"
