@@ -1,5 +1,6 @@
 # Creating a Python Environment with Hy and Jupyter Integration
 
+1. Install Miniconda3
 1.
     ```bash
     conda create -n hyid3-and-seq python=3.7
