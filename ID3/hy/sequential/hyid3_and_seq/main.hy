@@ -32,7 +32,7 @@
     (setv counts
         (map (fn [k]
                  (len (. (.get_group grouped_df k) index)))
-                 ((. grouped_df indices keys))))
+             ((. grouped_df indices keys))))
     (entropy (len df.index) (np.array (list counts))))
 
 (setv spam_df (.drop (pd.DataFrame spam_analysis_data) "SpamId" :axis 1))
