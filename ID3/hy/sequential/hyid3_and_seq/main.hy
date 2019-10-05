@@ -24,6 +24,20 @@
 
 (defn entropy [total_records value_frequencies &optional [log_base 2]]
     (setv item_probs (/ value_frequencies total_records))
-    (- (.sum (/ (* item_probs (np.log item_probs)) (np.log log_base)))))
+    (- (.sum (/ (* item_probs (np.log item_probs))
+                (np.log log_base)))))
 
-(print (entropy 6 (np.array [3 3])))
+(defn frame_entropy [df target_feature]
+    (setv grouped_df (.groupby df target_feature))
+    (setv counts
+        (map (fn [k]
+                 (len (. (.get_group grouped_df k) index)))
+                 ((. grouped_df indices keys))))
+    (entropy (len df.index) (np.array (list counts))))
+
+(setv spam_df (.drop (pd.DataFrame spam_analysis_data) "SpamId" :axis 1))
+(print (frame_entropy spam_df "SpamClass"))
+
+(setv eco_veg_df
+    (.drop (pd.DataFrame ecological_vegetation_data) "Id" :axis 1))
+(print (frame_entropy eco_veg_df "Vegetation"))
