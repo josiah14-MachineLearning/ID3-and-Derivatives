@@ -6,43 +6,55 @@
 (print a)
 (print #s(a [0 1 2 3 4] [1 2 3 4 5]))
 
-(setv spam_analysis_data {
-    "SpamId" [376 489 541 693 782 976]
-    "SuspiciousWords" [True True True False False False]
-    "UnknownSender" [False True True True False False]
-    "Images" [True False False True False False]
-    "SpamClass" ["spam" "spam" "spam" "ham" "ham" "ham"]})
-
-(setv ecological_vegetation_data {
-    "Id" [1 2 3 4 5 6 7]
-    "Stream" [False True True False False True True]
-    "Slope" ["steep" "moderate" "steep" "steep" "flat" "steep" "steep"]
-    "Elevation" ["high" "low" "medium" "medium" "high" "highest" "high"]
-    "Vegetation" ["chaparal" "riparian" "riparian" "chaparal" "conifer" "conifer" "chaparal"]})
-
-(print ecological_vegetation_data)
-
 (defn entropy [total_records value_frequencies &optional [log_base 2]]
-    (setv item_probs (/ value_frequencies total_records))
-    (- (.sum (/ (* item_probs (np.log item_probs))
-                (np.log log_base)))))
+    (setv item_probs
+      (/ value_frequencies total_records))
+    (- (.sum
+         (/
+           (* item_probs
+              (np.log item_probs))
+           (np.log log_base)))))
 
 (defn frame_entropy [df target_feature]
     (setv grouped_df (.groupby df target_feature))
     (setv counts
         (map (fn [k]
-                 (len (. (.get_group grouped_df k) index)))
+               (len
+                 (. (.get_group grouped_df k) index)))
              (grouped_df.indices.keys)))
-    (entropy (len df.index) (np.array (list counts))))
+
+    (entropy (len df.index)
+             (np.array (list counts))))
 
 (defn remaining_entropy [original_df target_feature grouped_df]
     (defn weighted_group_entropy [df]
-        (* (/ (len df.index) (len original_df.index))
+        (* (/ (len df.index)
+              (len original_df.index))
            (frame_entropy df target_feature)))
 
     (setv grouped_frames
-        (map grouped_df.get_group (grouped_df.indices.keys)))
-    (.sum (np.array (list (map weighted_group_entropy grouped_frames)))))
+        (map grouped_df.get_group
+             (grouped_df.indices.keys)))
+
+    (.sum
+      (np.array
+        (list
+          (map weighted_group_entropy
+               grouped_frames)))))
+
+(setv spam_analysis_data {
+  "SpamId" [376 489 541 693 782 976]
+  "SuspiciousWords" [True True True False False False]
+  "UnknownSender" [False True True True False False]
+  "Images" [True False False True False False]
+  "SpamClass" ["spam" "spam" "spam" "ham" "ham" "ham"]})
+
+(setv ecological_vegetation_data {
+  "Id" [1 2 3 4 5 6 7]
+  "Stream" [False True True False False True True]
+  "Slope" ["steep" "moderate" "steep" "steep" "flat" "steep" "steep"]
+  "Elevation" ["high" "low" "medium" "medium" "high" "highest" "high"]
+  "Vegetation" ["chaparal" "riparian" "riparian" "chaparal" "conifer" "conifer" "chaparal"]})
 
 (print)
 (setv spam_df (.drop (pd.DataFrame spam_analysis_data) "SpamId" :axis 1))
