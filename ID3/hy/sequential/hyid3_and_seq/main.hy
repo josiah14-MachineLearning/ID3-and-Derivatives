@@ -47,6 +47,14 @@
           (map weighted_group_entropy
                grouped_frames)))))
 
+(defn information_gain [target_feature
+                        original_entropy
+                        original_df
+                        grouped_df]
+  (- original_entropy
+     (remaining_entropy
+       original_df target_feature grouped_df)))
+
 (setv spam_analysis_data {
   "SpamId" [376 489 541 693 782 976]
   "SuspiciousWords" [True True True False False False]
@@ -65,6 +73,12 @@
 (setv spam_df (.drop (pd.DataFrame spam_analysis_data) "SpamId" :axis 1))
 (print (frame_entropy spam_df "SpamClass"))
 (print (remaining_entropy spam_df "SpamClass" (.groupby spam_df "SuspiciousWords")))
+(print
+  (information_gain
+    "SpamClass"
+    (frame_entropy spam_df "SpamClass")
+    spam_df
+    (.groupby spam_df "SuspiciousWords")))
 (print)
 
 (print)
@@ -74,6 +88,12 @@
 (print
     (remaining_entropy
         eco_veg_df "Vegetation" (.groupby eco_veg_df "Elevation")))
+(print
+  (information_gain
+    "Vegetation"
+    (frame_entropy eco_veg_df "Vegetation")
+    eco_veg_df
+    (.groupby eco_veg_df "Elevation")))
 (print)
 
 (print)
@@ -99,6 +119,12 @@
         acute_inflammations_df
         "BladderInflammation"
         (.groupby acute_inflammations_df "UrinePushing")))
+(print
+  (information_gain
+    "BladderInflammation"
+    (frame_entropy acute_inflammations_df "BladderInflammation")
+    acute_inflammations_df
+    (.groupby acute_inflammations_df "UrinePushing")))
 (print)
 
 (print)
@@ -108,3 +134,10 @@
         acute_inflammations_df
         "RenalPelvisNephritis"
         (.groupby acute_inflammations_df "Nausea")))
+(print
+  (information_gain
+    "RenalPelvisNephritis"
+    (frame_entropy acute_inflammations_df "RenalPelvisNephritis")
+    acute_inflammations_df
+    (.groupby acute_inflammations_df "Nausea")))
+
