@@ -6,7 +6,9 @@
 (print a)
 (print #s(a [0 1 2 3 4] [1 2 3 4 5]))
 
-(defn entropy [total_records value_frequencies &optional [log_base 2]]
+(defn entropy [total_records
+               value_frequencies
+               &optional [log_base 2]]
     (setv item_probs
       (/ value_frequencies total_records))
     (- (.sum
@@ -15,26 +17,29 @@
               (np.log item_probs))
            (np.log log_base)))))
 
-(defn frame_entropy [df target_feature]
+(defn frame_entropy [df
+                     target_feature]
     (setv grouped_df (.groupby df target_feature))
     (setv counts
-        (map (fn [k]
-               (len
-                 (. (.get_group grouped_df k) index)))
-             (grouped_df.indices.keys)))
+      (map (fn [k]
+             (len
+               (. (.get_group grouped_df k) index)))
+           (grouped_df.indices.keys)))
 
     (entropy (len df.index)
              (np.array (list counts))))
 
-(defn remaining_entropy [original_df target_feature grouped_df]
+(defn remaining_entropy [original_df
+                         target_feature
+                         grouped_df]
     (defn weighted_group_entropy [df]
-        (* (/ (len df.index)
-              (len original_df.index))
-           (frame_entropy df target_feature)))
+      (* (/ (len df.index)
+            (len original_df.index))
+         (frame_entropy df target_feature)))
 
     (setv grouped_frames
-        (map grouped_df.get_group
-             (grouped_df.indices.keys)))
+      (map grouped_df.get_group
+           (grouped_df.indices.keys)))
 
     (.sum
       (np.array
