@@ -39,7 +39,9 @@
     (defn weighted_group_entropy [df]
         (* (/ (len df.index) (len original_df.index))
            (frame_entropy df target_feature)))
-    (setv grouped_frames (map grouped_df.get_group (grouped_df.indices.keys)))
+
+    (setv grouped_frames
+        (map grouped_df.get_group (grouped_df.indices.keys)))
     (.sum (np.array (list (map weighted_group_entropy grouped_frames)))))
 
 (print)
