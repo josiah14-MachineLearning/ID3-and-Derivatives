@@ -5,23 +5,6 @@ from pandas import DataFrame, Series
 from pandas.core.groupby.generic import DataFrameGroupBy
 from typing import List, Tuple, Dict, Any
 
-spam_analysis_data = {
-    'SpamId': [376,489,541,693,782,976],
-    'SuspiciousWords': [True,True,True,False,False,False],
-    'UnknownSender': [False,True,True,True,False,False],
-    'Images': [True,False,False,True,False,False],
-    'SpamClass': ["spam","spam","spam","ham","ham","ham"]
-}
-
-
-ecological_vegetation_data = {
-    'Id': [1,2,3,4,5,6,7],
-    'Stream': [False, True, True, False, False, True, True],
-    'Slope': ['steep', 'moderate', 'steep', 'steep', 'flat', 'steep', 'steep'],
-    'Elevation': ['high', 'low', 'medium', 'medium', 'high', 'highest', 'high'],
-    'Vegetation': ['chaparal', 'riparian', 'riparian', 'chaparal', 'conifer', 'conifer', 'chaparal']
-}
-
 
 def entropy(
     total_records: int,
@@ -226,6 +209,22 @@ def run_dtree_model(dtree: Tuple[str, Dict[Any, Any]], row: Series) -> Series =
 # row of the training datasets.
 ################################################################################
 
+spam_analysis_data = {
+    'SpamId': [376,489,541,693,782,976],
+    'SuspiciousWords': [True,True,True,False,False,False],
+    'UnknownSender': [False,True,True,True,False,False],
+    'Images': [True,False,False,True,False,False],
+    'SpamClass': ["spam","spam","spam","ham","ham","ham"]
+}
+
+
+ecological_vegetation_data = {
+    'Id': [1,2,3,4,5,6,7],
+    'Stream': [False, True, True, False, False, True, True],
+    'Slope': ['steep', 'moderate', 'steep', 'steep', 'flat', 'steep', 'steep'],
+    'Elevation': ['high', 'low', 'medium', 'medium', 'high', 'highest', 'high'],
+    'Vegetation': ['chaparal', 'riparian', 'riparian', 'chaparal', 'conifer', 'conifer', 'chaparal']
+}
 
 spam_analysis_df = pd.DataFrame(spam_analysis_data).drop('SpamId', axis=1)
 spam_prediction_model = spam_analysis_df |> id3$('SpamClass')
