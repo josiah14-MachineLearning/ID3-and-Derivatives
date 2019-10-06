@@ -6,6 +6,7 @@
 (print a)
 (print #s(a [0 1 2 3 4] [1 2 3 4 5]))
 
+
 (defn entropy [total_records
                value_frequencies
                &optional [log_base 2]]
@@ -16,6 +17,7 @@
            (* item_probs
               ((. (. np log)) item_probs))
            ((. np log) log_base)))))
+
 
 (defn frame_entropy [df
                      target_feature]
@@ -28,6 +30,7 @@
 
     (entropy (len (. df index))
              (np.array (list counts))))
+
 
 (defn remaining_entropy [original_df
                          target_feature
@@ -47,6 +50,7 @@
           (map weighted_group_entropy
                grouped_frames)))))
 
+
 (defn information_gain [target_feature
                         original_entropy
                         original_df
@@ -54,6 +58,7 @@
   (- original_entropy
      (remaining_entropy
        original_df target_feature grouped_df)))
+
 
 (setv spam_analysis_data {
   "SpamId" [376 489 541 693 782 976]
