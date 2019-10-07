@@ -6,41 +6,41 @@
 (defn entropy [total_records
                value_frequencies
                &optional [log_base 2]]
-    (setv item_probs
-      (/ value_frequencies total_records))
-    (setv weighted_logs_of_probabilities
-      (/ (* item_probs
-            ((. (. np log)) item_probs))
-         ((. np log) log_base)))
-    (-> weighted_logs_of_probabilities .sum -))
+  (setv item_probs
+    (/ value_frequencies total_records))
+  (setv weighted_logs_of_probabilities
+    (/ (* item_probs
+          ((. (. np log)) item_probs))
+       ((. np log) log_base)))
+  (-> weighted_logs_of_probabilities .sum -))
 
 
 (defn frame_entropy [df
                      target_feature]
-    (setv grouped_df (.groupby df target_feature))
-    (setv counts
-      (map (fn [k]
-             (len
-               (. (.get_group grouped_df k) index)))
-           ((. grouped_df indices keys))))
+  (setv grouped_df (.groupby df target_feature))
+  (setv counts
+    (map (fn [k]
+           (len
+             (. (.get_group grouped_df k) index)))
+         ((. grouped_df indices keys))))
 
-    (->> counts list ((. np array))
-         (entropy (len (. df index)))))
+  (->> counts list ((. np array))
+       (entropy (len (. df index)))))
 
 
 (defn remaining_entropy [original_df
                          target_feature
                          grouped_df]
-    (defn weighted_group_entropy [df]
-      (* (/ (len (. df index))
-            (len (. original_df index)))
-         (frame_entropy df target_feature)))
+  (defn weighted_group_entropy [df]
+    (* (/ (len (. df index))
+          (len (. original_df index)))
+       (frame_entropy df target_feature)))
 
-    (setv grouped_frames
-      (map grouped_df.get_group
-           ((. grouped_df indices keys))))
+  (setv grouped_frames
+    (map grouped_df.get_group
+         ((. grouped_df indices keys))))
 
-    (->> grouped_frames (map weighted_group_entropy) list ((. np array)) .sum))
+  (->> grouped_frames (map weighted_group_entropy) list ((. np array)) .sum))
 
 
 (defn information_gain [target_feature
