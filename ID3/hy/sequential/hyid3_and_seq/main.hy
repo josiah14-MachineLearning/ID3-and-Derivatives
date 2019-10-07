@@ -118,11 +118,10 @@
 
 (print)
 (setv eco_veg_df
-    (.drop (pd.DataFrame ecological_vegetation_data) "Id" :axis 1))
+  (.drop (pd.DataFrame ecological_vegetation_data) "Id" :axis 1))
 (print (frame_entropy eco_veg_df "Vegetation"))
 (print
-    (remaining_entropy
-        eco_veg_df "Vegetation" (.groupby eco_veg_df "Elevation")))
+  (remaining_entropy eco_veg_df "Vegetation" (.groupby eco_veg_df "Elevation")))
 (print
   (information_gain
     "Vegetation"
@@ -135,27 +134,27 @@
 
 (print)
 (setv acute_inflammations_df
-    (do
-        (setv raw_df
-            (pd.read_csv "../../../datasets/acute_diagnoses/diagnosis.data"
-                :sep "\t" :lineterminator "\n" :header None :encoding "utf-8"))
-        (.drop
-            (.rename raw_df :columns {
-                0 "Temperature"
-                1 "Nausea"
-                2 "LumbarPain"
-                3 "UrinePushing"
-                4 "MicturationPains"
-                5 "UrethreaBurning"
-                6 "BladderInflammation"
-                7 "RenalPelvisNephritis"})
-            "Temperature" :axis 1)))
+  (do
+    (setv raw_df
+      (pd.read_csv "../../../datasets/acute_diagnoses/diagnosis.data"
+        :sep "\t" :lineterminator "\n" :header None :encoding "utf-8"))
+    (.drop
+      (.rename raw_df :columns {
+        0 "Temperature"
+        1 "Nausea"
+        2 "LumbarPain"
+        3 "UrinePushing"
+        4 "MicturationPains"
+        5 "UrethreaBurning"
+        6 "BladderInflammation"
+        7 "RenalPelvisNephritis"})
+      "Temperature" :axis 1)))
 (print (frame_entropy acute_inflammations_df "BladderInflammation"))
 (print
-    (remaining_entropy
-        acute_inflammations_df
-        "BladderInflammation"
-        (.groupby acute_inflammations_df "UrinePushing")))
+  (remaining_entropy
+    acute_inflammations_df
+    "BladderInflammation"
+    (.groupby acute_inflammations_df "UrinePushing")))
 (print
   (information_gain
     "BladderInflammation"
@@ -172,10 +171,10 @@
 (print)
 (print (frame_entropy acute_inflammations_df "RenalPelvisNephritis"))
 (print
-    (remaining_entropy
-        acute_inflammations_df
-        "RenalPelvisNephritis"
-        (.groupby acute_inflammations_df "LumbarPain")))
+  (remaining_entropy
+    acute_inflammations_df
+    "RenalPelvisNephritis"
+    (.groupby acute_inflammations_df "LumbarPain")))
 (print
   (information_gain
     "RenalPelvisNephritis"
