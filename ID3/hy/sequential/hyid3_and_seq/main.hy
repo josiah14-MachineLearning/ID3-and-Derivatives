@@ -10,7 +10,7 @@
     (/ value_frequencies total_records))
   (setv weighted_logs_of_probabilities
     (/ (* item_probs
-          ((. (. np log)) item_probs))
+          ((. np log) item_probs))
        ((. np log) log_base)))
   (-> weighted_logs_of_probabilities .sum -))
 
