@@ -142,7 +142,7 @@ def id3(target_feature: str, df: DataFrame) -> Tuple[str, Dict[Any, Any]] =
     """
     unique_target_values = df[target_feature].unique()
     if len(unique_target_values) == 1:
-        new_node = unique_target_values[0]  # a leaf
+        new_node = Series(unique_target_values[0])  # a leaf
     else:  # Can skip the rest if the previous if conditional was True
         # Each node will have the column name, the mode at this level, and a list
         # of tuples where the first tuple value is a column value and the second
@@ -165,7 +165,7 @@ def id3(target_feature: str, df: DataFrame) -> Tuple[str, Dict[Any, Any]] =
             })
         else:
             new_leaves.update({
-                key: grouped_df.get_group(key)[target_feature].mode()[0]
+                key: grouped_df.get_group(key)[target_feature].mode()
                 for key in grouped_df.indices.keys()
             })
         new_node = (best_feature[0], new_leaves)
