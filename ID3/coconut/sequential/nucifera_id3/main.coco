@@ -157,12 +157,15 @@ def id3(target_feature: str, df: DataFrame) -> Tuple[str, Dict[Any, Any]] =
         new_leaves = {'otherwise': df[target_feature].mode()}
         if len(df.columns) > 2:
             new_leaves.update({
-                key: id3(target_feature, grouped_df.get_group(key))
+                key: id3(
+                    target_feature,
+                    grouped_df.get_group(key).drop(best_feature[0], axis=1)
+                )
                 for key in grouped_df.indices.keys()
             })
         else:
             new_leaves.update({
-                key: grouped_df.get_group(key)[target_feature].mode()
+                key: grouped_df.get_group(key)[target_feature].mode()[0]
                 for key in grouped_df.indices.keys()
             })
         new_node = (best_feature[0], new_leaves)
@@ -264,8 +267,9 @@ acute_inflammations_id3_predict_bladder_inflammation_df = (
 )
 
 bladder_inflammations_model = (
-    acute_inflammations_id3_predict_bladder_inflammation_df 
-    |> id3$('BladderInflammation') 
+    acute_inflammations_id3_predict_bladder_inflammation_df[
+        ["UrinePushing", "LumbarPain", "BladderInflammation"]
+    ] |> id3$('BladderInflammation')
 )
 print()
 bladder_inflammations_model |> print
