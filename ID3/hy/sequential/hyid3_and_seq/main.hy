@@ -148,6 +148,7 @@
     (eval (mk_fxn `add_two))
     (add_two 1 2)
     ; => 3
+    )
   (pass))
 
 
