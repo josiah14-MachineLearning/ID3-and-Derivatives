@@ -12,11 +12,11 @@
                &optional [log_base 2]]
     (setv item_probs
       (/ value_frequencies total_records))
-    (- (.sum
-         (/
-           (* item_probs
-              ((. (. np log)) item_probs))
-           ((. np log) log_base)))))
+    (setv weighted_logs_of_probabilities
+      (/ (* item_probs
+            ((. (. np log)) item_probs))
+         ((. np log) log_base)))
+    (-> weighted_logs_of_probabilities .sum -))
 
 
 (defn frame_entropy [df
@@ -28,8 +28,8 @@
                (. (.get_group grouped_df k) index)))
            ((. grouped_df indices keys))))
 
-    (entropy (len (. df index))
-             (np.array (list counts))))
+    (->> counts list ((. np array))
+      (entropy (len (. df index)))))
 
 
 (defn remaining_entropy [original_df
@@ -44,11 +44,7 @@
       (map grouped_df.get_group
            ((. grouped_df indices keys))))
 
-    (.sum
-      ((. np array)
-        (list
-          (map weighted_group_entropy
-               grouped_frames)))))
+    (->> grouped_frames (map weighted_group_entropy) list ((. np array)) .sum))
 
 
 (defn information_gain [target_feature
