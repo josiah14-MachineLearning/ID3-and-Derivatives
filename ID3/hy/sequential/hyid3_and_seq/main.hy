@@ -29,7 +29,7 @@
            ((. grouped_df indices keys))))
 
     (->> counts list ((. np array))
-      (entropy (len (. df index)))))
+         (entropy (len (. df index)))))
 
 
 (defn remaining_entropy [original_df
