@@ -145,9 +145,9 @@
     (defn mk_fxn [fxn_name]
       `(defn ~fxn_name [arg1 arg2]
          (+ arg1 arg2)))
-    (mk_fxn `add_two)
+    (eval (mk_fxn `add_two))
     (add_two 1 2)
-    ; => 3)
+    ; => 3
   (pass))
 
 
