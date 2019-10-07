@@ -52,8 +52,7 @@
        original_df target_feature grouped_df)))
 
 
-(defn find_most_informative_feature [target_feature
-                                     df]
+(defn find_most_informative_feature [target_feature df]
   (setv original_entropy (frame_entropy df target_feature))
   (defn calc_IG [descriptive_feature]
     (setv grouped_df ((. df groupby) descriptive_feature))
@@ -78,6 +77,71 @@
   ;; explicitly mentioned in the pseudocode algorithms in textbooks and online
   ;; which describe the ID3 algorithm.
   (reduce keep_greatest_IG descriptive_features))
+
+
+(defn id3 [target_feature df]
+  "
+    High-level algorithm summary:
+
+    1. If all of the target_feature values in the training set DataFrame are the
+       same value, return that value as the new leaf.
+    2. If there is only one descriptive_feature left to split on, split by it and
+       make a new node which is a tuple where the first tuple value is the name
+       of the descriptive_feature column, and the second is a dictionary where
+       the keys are each unique value of the descriptive_feature column, and the
+       values are the mode of the target_feature of that grouping of the
+       descriptive_feature value.  Also add an `otherwise` key whose value is
+       the mode of the unsplit frame's target_feature column in case real-world
+       data contains unique values of the descriptive feature that got excluded
+       via former iterations of splitting the training set to build this model.
+    3. Otherwise, identify the descriptive_feature which yields the greatest
+       Information Gain and use it to split the training set DataFrame.  Make
+       a new node which is a tuple where the first tuple value is the name of
+       the descriptive_feature column, and the second is the a dictionary where
+       the keys are each unique value of the descriptive_feature column, and
+       the values are the result of running this id3 function recursively over
+       the DataFrame for the group at the key (which is the descriptive_feature
+       value).  As in step 2, also add an `otherwise` key whose value is
+       the mode of the unsplit frame's target_feature column in case real-world
+       data contains unique values of the descriptive feature that got excluded
+       via former iterations of splitting the training set to build this model.
+
+    :param target_feature: The name of the column this model should try to
+        predict.
+    :param df: The training set to use to build this decision tree model.
+
+    :return: A tuple which is a decision tree structure.  To explain the
+        mypy type signature, the Dict's first Any represents the type of
+        the descriptive_feature at that node, and the second Any could be either
+        another tree node, which would have signature Tuple[str, Dict[Any, Any]],
+        or it could be a leaf, which would just be a str value which is the value
+        predicted at the end of that traversal of the tree.
+
+        Here are some sample trees:
+        ; simple Ham or Spam prediction example
+        ('SuspiciousWords', {True: 'spam', False: 'ham'})
+
+        ; sample Ecological Vegetation decision tree
+        ('Elevation', {
+            'low': 'riparian',
+            'highest': 'conifer',
+            'medium': ('Stream', {
+                True: 'riparian',
+                False: 'chaparal'
+            }),
+            'high': ('Slope', {
+                'flat': 'conifer',
+                'steep': 'chaparal',
+                # below, 'moderate' was eliminated through splitting, so the
+                # mode of the target_level of the frame unsplit by 'Slope' is
+                # assumed via 'otherwise' for any value other than 'flat' or
+                # 'steep', which covers 'moderate' since it got excluded by
+                # the split.
+                'otherwise': 'chaparal'
+            })
+        })
+  "
+  (pass))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
