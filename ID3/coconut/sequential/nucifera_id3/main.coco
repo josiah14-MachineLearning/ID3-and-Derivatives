@@ -155,10 +155,16 @@ def id3(target_feature: str, df: DataFrame) -> Tuple[str, Dict[Any, Any]] =
         # this case, the current unsplit mode of the target_feature is assumed to be the most
         # accurate prediction.
         new_leaves = {'otherwise': df[target_feature].mode()}
-        new_leaves.update({
-            key: id3(target_feature, grouped_df.get_group(key))
-            for key in grouped_df.indices.keys()
-        })
+        if len(df.columns) > 2:
+            new_leaves.update({
+                key: id3(target_feature, grouped_df.get_group(key))
+                for key in grouped_df.indices.keys()
+            })
+        else:
+            new_leaves.update({
+                key: grouped_df.get_group(key)[target_feature].mode()
+                for key in grouped_df.indices.keys()
+            })
         new_node = (best_feature[0], new_leaves)
     new_node
 
@@ -289,3 +295,4 @@ print()
     |> acute_inflammations_id3_predict_nephritis_df.apply$(axis=1)
     |> print
 )
+
