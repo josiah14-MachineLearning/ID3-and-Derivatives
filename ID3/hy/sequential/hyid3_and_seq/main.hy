@@ -56,6 +56,39 @@
        original_df target_feature grouped_df)))
 
 
+(defn find_most_informative_feature [target_feature
+                                     df]
+  (setv original_entropy (frame_entropy df target_feature))
+  (defn calc_IG [descriptive_feature]
+    (setv grouped_df ((. df groupby) descriptive_feature))
+    (, descriptive_feature
+       (information_gain target_feature original_entropy df grouped_df)
+       grouped_df))
+
+  (defn keep_greatest_IG [acc_df
+                          next_descriptive_feature]
+    (setv next_df (calc_IG next_descriptive_feature))
+    (if (>= (get acc_df 1) (get next_df 1))
+      acc_df
+      next_df))
+
+  (setv descriptive_features
+    (-> (. (.drop df target_feature :axis 1) columns) list))
+  (setv (get descriptive_features 0)
+    (calc_IG (get descriptive_features 0)))
+
+  ;; If there's only 1 descriptive feature, reduce will just return the only item
+  ;; in the list, so we don't need an if-statement here to provide the shortcut
+  ;; explicitly mentioned in the pseudocode algorithms in textbooks and online
+  ;; which describe the ID3 algorithm.
+  (reduce keep_greatest_IG descriptive_features))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Test the ID3 functions on some datasets
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 (setv spam_analysis_data {
   "SpamId" [376 489 541 693 782 976]
   "SuspiciousWords" [True True True False False False]
@@ -80,6 +113,7 @@
     (frame_entropy spam_df "SpamClass")
     spam_df
     (.groupby spam_df "SuspiciousWords")))
+(print (find_most_informative_feature "SpamClass" spam_df))
 (print)
 
 (print)
@@ -95,6 +129,8 @@
     (frame_entropy eco_veg_df "Vegetation")
     eco_veg_df
     (.groupby eco_veg_df "Elevation")))
+(print
+  (find_most_informative_feature "Vegetation" eco_veg_df))
 (print)
 
 (print)
@@ -126,6 +162,11 @@
     (frame_entropy acute_inflammations_df "BladderInflammation")
     acute_inflammations_df
     (.groupby acute_inflammations_df "UrinePushing")))
+(setv acute_inf_predict_bladder_inf_df
+  (.drop acute_inflammations_df "RenalPelvisNephritis" :axis 1))
+(print
+  (find_most_informative_feature
+    "BladderInflammation" acute_inf_predict_bladder_inf_df))
 (print)
 
 (print)
@@ -134,11 +175,15 @@
     (remaining_entropy
         acute_inflammations_df
         "RenalPelvisNephritis"
-        (.groupby acute_inflammations_df "Nausea")))
+        (.groupby acute_inflammations_df "LumbarPain")))
 (print
   (information_gain
     "RenalPelvisNephritis"
     (frame_entropy acute_inflammations_df "RenalPelvisNephritis")
     acute_inflammations_df
-    (.groupby acute_inflammations_df "Nausea")))
-
+    (.groupby acute_inflammations_df "LumbarPain")))
+(setv acute_inf_predict_renal_nephritis
+  (.drop acute_inflammations_df "BladderInflammation" :axis 1))
+(print
+  (find_most_informative_feature
+    "RenalPelvisNephritis" acute_inf_predict_renal_nephritis))
