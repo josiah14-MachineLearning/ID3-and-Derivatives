@@ -310,7 +310,18 @@
   (find_most_informative_feature
     "RenalPelvisNephritis" acute_inf_predict_renal_nephritis))
 
+(setv acute_inf_predict_bladder_inf_df
+  (get acute_inf_predict_bladder_inf_df
+       ["UrinePushing" "LumbarPain" "BladderInflammation"]))
 
 (print (id3 "Vegetation" eco_veg_df))
 (eval (build_prediction_fxn "Vegetation" eco_veg_df `predict_vegetation))
 (print (.apply eco_veg_df predict_vegetation :axis 1))
+
+(print (id3 "BladderInflammation" acute_inf_predict_bladder_inf_df))
+(eval (build_prediction_fxn "BladderInflammation"
+                            acute_inf_predict_bladder_inf_df
+                            `predict_bladder_inflammation))
+(print(.apply acute_inf_predict_bladder_inf_df
+              predict_bladder_inflammation
+              :axis 1))
