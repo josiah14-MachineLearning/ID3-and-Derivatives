@@ -121,13 +121,11 @@
            #*(lfor feature_value ((. grouped_df indices keys))
                `((= (get row ~(get best_feature 0)) ~feature_value)
                    (.append row
-                     (->
+                     (Series
                        ~(-> (get ((. grouped_df get_group) feature_value)
                                  target_feature)
                             .mode
-                            list)
-                       Series
-                       Series))))
+                            list)))))
            new_code)))))
 
 
