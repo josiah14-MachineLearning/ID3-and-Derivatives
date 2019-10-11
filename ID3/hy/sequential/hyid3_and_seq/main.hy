@@ -1,5 +1,6 @@
 (import [numpy :as np])
 (import [pandas :as pd])
+(import [pandas [Series]])
 (require [helpers [*]])
 
 
@@ -79,7 +80,7 @@
   (reduce keep_greatest_IG descriptive_features))
 
 
-(defn id3 [target_feature df]
+(defn build_prediction_fxn [target_feature df predict_fxn_name]
   "
     High-level algorithm summary:
 
@@ -149,7 +150,78 @@
     (add_two 1 2)
     ; => 3
     )
+  (setv predict_fxn
+    `(defn ~predict_fxn_name [row]
+       "
+         This function was build using the ID3 decision tree classifier
+         algorithm and is provided in lieu of an actual decision tree
+         data structure.  To run it, just apply it to a Pandas DataFrame
+         like so: (assuming `predict` is the function name)
+         `df.apply(predict, axis=1)`.  You will get the same DataFrame
+         back, except it will have the predictions appended as a new
+         column.
+
+         :param row: a Pandas Series
+         :returns: a new Series with the prediction appended as a new field.
+       "))
+  (setv unique_target_values
+    (.unique (get df target_feature)))
+
+  (if (= (len unique_target_values) 1)
+    (do
+      (setv new_code
+        `((.append row
+            (Series (Series (get ~unique_target_values 0))))))
+      (+ predict_fxn new_code))
+    )
   (pass))
+
+
+(defn id3 [target_feature df]
+  (setv unique_target_values
+    (.unique (get df target_feature)))
+
+  (if (= (len unique_target_values) 1)
+    `(.append row
+       (Series (Series (get ~unique_target_values 0))))
+    ;else
+    (do
+      (setv best_feature
+        (find_most_informative_feature target_feature df))
+      (print best_feature)  ; for debugging purposes
+      (setv grouped_df
+        (get best_feature -1))
+      (setv new_code
+        ;; In case a feature value that wasn't in this split of the training
+        ;; data is encountered in the "real" data.
+        ;;
+        ;; Below, the Series is converted to a list and then instructed
+        ;; during eval to convert back to a Series because Hy doesn't know
+        ;; how to wrap a Pandas Series for literal evaluation.
+        `(.append row (Series ~(-> (get df target_feature) .mode list))))
+      ;; Build an if-elif-else conditional that asks what the value of the row
+      ;; is on the "best_feature" field and returns a prediction based on that
+      ;; value.
+      (if (> (len (. df columns)) 2)
+        ; Recurse over the grouping DataFrame at the feature_value to
+        ; split over more features for arriving at a prediction.
+        (+ `(if)
+           #*(lfor feature_value ((. grouped_df indices keys))
+               `((= (get row (get best_feature 0)) feature_value)
+                   ~(id3 target_feature
+                         (.drop ((. grouped_df get_group) feature_value)
+                                (get best_feature 0)
+                                :axis 1))))
+           new_code)
+        ; else
+        (+ `(if)
+           #*(lfor feature_value ((. grouped_df indices keys))
+               `((= (get row (get best_feature 0)) feature_value)
+                   `(.append row
+                      (Series
+                        ~(.mode (get ((. grouped_df get_group) feature_value)
+                                     target_feature))))))
+           new_code)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
