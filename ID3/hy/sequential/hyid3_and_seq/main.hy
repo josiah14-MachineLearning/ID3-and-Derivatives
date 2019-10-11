@@ -328,3 +328,6 @@
 (print
   (find_most_informative_feature
     "RenalPelvisNephritis" acute_inf_predict_renal_nephritis))
+
+
+(print (id3 "Vegetation" eco_veg_df))
