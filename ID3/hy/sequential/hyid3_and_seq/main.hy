@@ -207,7 +207,7 @@
         ; split over more features for arriving at a prediction.
         (+ `(if)
            #*(lfor feature_value ((. grouped_df indices keys))
-               `((= (get row (get best_feature 0)) feature_value)
+               `((= (get row ~(get best_feature 0)) ~feature_value)
                    ~(id3 target_feature
                          (.drop ((. grouped_df get_group) feature_value)
                                 (get best_feature 0)
@@ -216,11 +216,13 @@
         ; else
         (+ `(if)
            #*(lfor feature_value ((. grouped_df indices keys))
-               `((= (get row (get best_feature 0)) feature_value)
-                   `(.append row
-                      (Series
-                        ~(.mode (get ((. grouped_df get_group) feature_value)
-                                     target_feature))))))
+               `((= (get row ~(get best_feature 0)) ~feature_value)
+                   (.append row
+                     (Series
+                       ~(-> (get ((. grouped_df get_group) feature_value)
+                                 target_feature)
+                            .mode
+                            list)))))
            new_code)))))
 
 
