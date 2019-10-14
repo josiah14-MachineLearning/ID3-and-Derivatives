@@ -86,8 +86,8 @@
 
   (if (= (len unique_target_values) 1)
     `(.append row
-       (Series (Series (get ~(list unique_target_values) 0))))
-    ;else
+       (-> (get ~(list unique_target_values) 0) Series Series))
+ ; else
     (do
       (setv best_feature
         (find_most_informative_feature target_feature df))
@@ -101,7 +101,10 @@
         ;; Below, the Series is converted to a list and then instructed
         ;; during eval to convert back to a Series because Hy doesn't know
         ;; how to wrap a Pandas Series for literal evaluation.
-        `((.append row (Series ~(-> (get df target_feature) .mode list)))))
+        `((.append row (->
+                         ~(-> (get df target_feature) .mode list)
+                         Series
+                         Series))))
       ;; Build an if-elif-else conditional that asks what the value of the row
       ;; is on the "best_feature" field and returns a prediction based on that
       ;; value.
@@ -116,16 +119,18 @@
                                 (get best_feature 0)
                                 :axis 1))))
            new_code)
-        ; else
+     ; else
         (+ `(if)
            #*(lfor feature_value ((. grouped_df indices keys))
                `((= (get row ~(get best_feature 0)) ~feature_value)
                    (.append row
-                     (Series
+                     (->
                        ~(-> (get ((. grouped_df get_group) feature_value)
                                  target_feature)
                             .mode
-                            list)))))
+                            list)
+                     Series
+                     Series))))
            new_code)))))
 
 
