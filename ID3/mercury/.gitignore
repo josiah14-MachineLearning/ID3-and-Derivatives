@@ -1,0 +1,19 @@
+# Created by https://www.gitignore.io/api/mercury
+# Edit at https://www.gitignore.io/?templates=mercury
+
+### Mercury ###
+Mercury/
+Mercury.modules
+*.mh
+*.err
+*.init
+*.dll
+*.exe
+*.a
+*.so
+*.dylib
+*.beams
+*.d
+*.c_date
+
+# End of https://www.gitignore.io/api/mercury
