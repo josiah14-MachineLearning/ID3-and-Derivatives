@@ -16,4 +16,11 @@ Mercury.modules
 *.d
 *.c_date
 
+### Build artifacts ###
+*.c
+*.o
+
+### mmc-get libraries ###
+mercury-csv/
+
 # End of https://www.gitignore.io/api/mercury

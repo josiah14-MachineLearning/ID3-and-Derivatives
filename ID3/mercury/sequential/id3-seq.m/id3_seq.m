@@ -3,7 +3,13 @@
 :- import_module io.
 :- pred main(io :: di, io :: uo) is det.
 :- implementation.
-:- import_module string, list, integer, float, math.
+
+% stl imports
+:- import_module
+  bool, int, string, list, maybe, require, integer, float, math, stream.
+
+% mmc-get imports
+:- import_module csv.
 
 :- pred negate_f(float :: in, float :: out) is det.
 negate_f(Num, NegatedNum) :-
