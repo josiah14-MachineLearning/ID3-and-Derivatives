@@ -1,1 +1,1 @@
-mmc --mld ./mercury-csv/src --mld ./mercury-csv/src/Mercury id3_seq
+mmc --mld ./mercury-csv/src/Mercury --mld ./Mercury --link-object mercury-csv/src/libmercury_csv.a id3_seq
